@@ -1,4 +1,10 @@
 {
   "version": 2,
-  "name": "usama-traders-api"
+  "name": "usama-trader-api",
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "dist/app.js"
+    }
+  ]
 }
