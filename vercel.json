@@ -1,16 +1,8 @@
 {
   "version": 2,
-  "name": "usama-trader-api",
-  "builds": [
-    {
-      "src": "dist/app.js",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "dist/app.js"
-    }
-  ]
+  "name": "usama-traders-api",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "builds": [{ "src": "dist/app.js", "use": "@vercel/node" }],
+  "routes": [{ "src": "/(.*)", "dest": "dist/app.js" }]
 }
