@@ -3,7 +3,7 @@ import express, { Application, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import routes from '../src/modules/auth/auth.routes'; // we will create an index.ts inside modules later
+import routes from './modules/auth/auth.routes'; // we will create an index.ts inside modules later
 import { errorHandler } from './middleware/error.middleware';
 
 const app: Application = express();
