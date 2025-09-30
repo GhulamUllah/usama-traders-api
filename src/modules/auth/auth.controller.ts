@@ -21,6 +21,7 @@ export const loginHandler = async (req: Request, res: Response, next: NextFuncti
     const result = await loginUser(parsedData);
     return successResponse(res, 200, 'Login successful', result);
   } catch (error) {
+    console.log(error);
     next(error);
   }
 };
