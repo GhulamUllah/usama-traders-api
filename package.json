@@ -7,6 +7,7 @@
     "build": "tsc",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "start": "node dist/server.js",
+    "vercel-build": "npm run build",
     "lint": "eslint 'src/**/*.{ts,js}'",
     "format": "prettier --write 'src/**/*.{ts,js,json,md}'",
     "test": "jest --passWithNoTests"
