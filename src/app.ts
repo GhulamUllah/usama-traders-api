@@ -19,6 +19,15 @@ app.use(morgan('dev')); // logging
 app.get('/', (req: Request, res: Response) => {
   res.json({ success: true, message: 'API is running 🚀' });
 });
+app.get('/health', async (req, res) => {
+  try {
+    const dbState = (await import('mongoose')).default.connection.readyState;
+    res.json({ success: true, dbState });
+    // 1 = connected, 2 = connecting, 0 = disconnected
+  } catch (err) {
+    res.status(500).json({ success: false, error: err });
+  }
+});
 
 app.use('/api/v1', routes); // mount all feature modules here
 
