@@ -6,6 +6,7 @@ import morgan from 'morgan';
 import routes from './modules/auth/auth.routes'; // we will create an index.ts inside modules later
 import { errorHandler } from './middleware/error.middleware';
 import dotenv from 'dotenv';
+import connectDB from './database/connection';
 dotenv.config();
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/usama-backend';
 const app: Application = express();
@@ -18,16 +19,12 @@ app.use(express.urlencoded({ extended: true })); // parse form-data
 app.use(morgan('dev')); // logging
 
 // ====== Routes ======
-app.get('/', (req: Request, res: Response) => {
-  res.json({ success: true, message: 'API is running 🚀' });
-});
-app.get('/health', async (req, res) => {
+app.get('/', async (req: Request, res: Response) => {
   try {
-    const dbState = (await import('mongoose')).default.connection.readyState;
-    res.json({ success: true, dbState, MONGO_URI });
-    // 1 = connected, 2 = connecting, 0 = disconnected
-  } catch (err) {
-    res.status(500).json({ success: false, error: err });
+    await connectDB();
+    res.json({ success: true, message: 'API is running 🚀' });
+  } catch (err: any) {
+    res.json({ success: false, message: 'DATABASE UNABLE TO CONNECT 🚀' });
   }
 });
 
