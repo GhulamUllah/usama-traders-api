@@ -5,7 +5,9 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import routes from './modules/auth/auth.routes'; // we will create an index.ts inside modules later
 import { errorHandler } from './middleware/error.middleware';
-
+import dotenv from 'dotenv';
+dotenv.config();
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/usama-backend';
 const app: Application = express();
 
 // ====== Middlewares ======
@@ -22,7 +24,7 @@ app.get('/', (req: Request, res: Response) => {
 app.get('/health', async (req, res) => {
   try {
     const dbState = (await import('mongoose')).default.connection.readyState;
-    res.json({ success: true, dbState });
+    res.json({ success: true, dbState, MONGO_URI });
     // 1 = connected, 2 = connecting, 0 = disconnected
   } catch (err) {
     res.status(500).json({ success: false, error: err });
