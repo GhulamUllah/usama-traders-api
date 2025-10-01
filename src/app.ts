@@ -6,6 +6,7 @@ import morgan from 'morgan';
 import routes from './modules/auth/auth.routes'; // we will create an index.ts inside modules later
 import { errorHandler } from './middleware/error.middleware';
 import dotenv from 'dotenv';
+import connectDB from './database/connection';
 dotenv.config();
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/usama-backend';
 const app: Application = express();
@@ -20,6 +21,18 @@ app.use(morgan('dev')); // logging
 // ====== Routes ======
 app.get('/', (req: Request, res: Response) => {
   res.json({ success: true, message: 'API is running 🚀' });
+});
+app.get('/db-check', async (req, res) => {
+  try {
+    const result = await connectDB();
+    res.json(result);
+  } catch (err: any) {
+    res.status(500).json({
+      success: false,
+      error: err.message,
+      stack: err.stack,
+    });
+  }
 });
 app.get('/health', async (req, res) => {
   try {
