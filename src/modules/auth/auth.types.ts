@@ -17,6 +17,7 @@ export interface IUser extends Document {
   password: string;
   isApproved: boolean;
   role: 'user' | 'admin';
+  deletedAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }

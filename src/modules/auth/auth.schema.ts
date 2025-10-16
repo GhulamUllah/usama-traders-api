@@ -34,10 +34,19 @@ const userSchema: Schema<IUser> = new Schema<IUser>(
       default: false,
       select: false,
     },
+    deletedAt: { type: Date, default: null },
   },
   { timestamps: true },
 );
 
 const UserModel: Model<IUser> = mongoose.models.User || mongoose.model<IUser>('User', userSchema);
-
+userSchema.index({ name: 'text', email: 'text' });
+userSchema.pre('find', function (next) {
+  this.where({ deletedAt: null });
+  next();
+});
+userSchema.pre('findOne', function (next) {
+  this.where({ deletedAt: null });
+  next();
+});
 export default UserModel;
