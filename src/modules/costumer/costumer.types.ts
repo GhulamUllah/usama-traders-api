@@ -9,12 +9,7 @@ export interface CostumerResponse {
 export interface ICostumer extends Document {
   name?: string;
   phoneNumber: string;
-  balance: {
-    amount: number;
-    date: Date;
-    description?: string;
-    type: 'credit' | 'debit';
-  }[];
+  balance: number;
   deletedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;

@@ -22,11 +22,6 @@ export const createCostumer = async (data: CreateCustomer): Promise<any> => {
   const customer = await CustomerModel.create({
     name,
     phoneNumber,
-    balance: {
-      amount: 0,
-      type: 'credit',
-      description: 'Initial Balance',
-    },
   });
 
   return {
@@ -41,13 +36,7 @@ export const updateCustomer = async (data: UpdateCustomer): Promise<CostumerResp
     { _id: costumerId },
     {
       $set: { name },
-      $push: {
-        balance: {
-          amount: balance?.amount,
-          type: balance?.type,
-          description: balance?.description || '',
-        },
-      },
+      $inc: { balance: balance || 0 },
     },
     { new: true },
   );

@@ -26,3 +26,11 @@ export const authenticate = (req: AuthRequest, res: Response, next: NextFunction
     return res.status(403).json({ success: false, message: 'Forbidden' });
   }
 };
+
+export const authorizeAdmin = (req: AuthRequest, res: Response, next: NextFunction) => {
+  if (req.user && typeof req.user === 'object' && req.user.role === 'admin') {
+    next();
+  } else {
+    return res.status(403).json({ success: false, message: 'Admin access required' });
+  }
+};

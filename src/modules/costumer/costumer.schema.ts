@@ -17,28 +17,10 @@ const costumerSchema: Schema<ICostumer> = new Schema<ICostumer>(
       required: [true, 'Phone number is required'],
       unique: true,
     },
-    balance: [
-      {
-        amount: {
-          type: Number,
-          required: true,
-        },
-        date: {
-          type: Date,
-          default: Date.now,
-        },
-        description: {
-          type: String,
-          trim: true,
-          default: '',
-        },
-        type: {
-          type: String,
-          enum: ['credit', 'debit'],
-          required: true,
-        },
-      },
-    ],
+    balance: {
+      type: Number,
+      default: 0,
+    },
     deletedAt: { type: Date, default: null },
   },
   { timestamps: true },

@@ -2,12 +2,13 @@
 
 import { Router } from 'express';
 import { createHandler, deleteHandler, findAllHandler, updateHandler } from './costumer.controller';
+import { authenticate, authorizeAdmin } from '../../middleware/auth.middleware';
 
 const router = Router();
 
-router.post('/create', createHandler);
-router.post('/update', updateHandler);
-router.post('/delete', deleteHandler);
-router.get('/all', findAllHandler);
+router.post('/create', authenticate, createHandler);
+router.post('/update', authenticate, updateHandler);
+router.post('/delete', authenticate, authorizeAdmin, deleteHandler);
+router.get('/all', authenticate, findAllHandler);
 
 export default router;

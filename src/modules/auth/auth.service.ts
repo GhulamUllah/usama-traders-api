@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 import jwt, { SignOptions } from 'jsonwebtoken';
 import UserModel from './auth.schema'; // Assuming we have a user model
 import { AuthResponse } from './auth.types';
-import { LoginInput, RegisterInput } from './auth.validators';
+import { LoginInput, RegisterInput, ApproveUser, DeleteUser } from './auth.validators';
 import { ObjectId } from 'mongoose';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecret';
@@ -55,3 +55,37 @@ export const loginUser = async (data: LoginInput): Promise<AuthResponse> => {
     user: { id: (user._id as string).toString(), name: user.name, email: user.email },
   };
 };
+
+export const getAllUsers = async (): Promise<{ users: any[] }> => {
+  const users = await UserModel.find().sort({ createdAt: -1 }); // ✅ Latest first
+
+  return {
+    users,
+  };
+};
+
+export const approveUser = async (userId: ApproveUser): Promise<AuthResponse> => {
+  const user = await UserModel.findByIdAndUpdate(userId, { isApproved: true }, { new: true });
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  return {
+    message: 'User approved successfully',
+    user,
+  } as unknown as AuthResponse;
+};
+
+export const deleteUser = async (userId: DeleteUser): Promise<AuthResponse> => {
+  const user = await UserModel.findByIdAndDelete(userId).select('-password');
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  return {
+    message: 'User deleted successfully',
+    user,
+  } as unknown as AuthResponse;
+};
+
+// You can add more auth-related services as needed

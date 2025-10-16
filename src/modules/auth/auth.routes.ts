@@ -1,7 +1,14 @@
 // src/modules/auth/auth.routes.ts
 
 import { Router } from 'express';
-import { registerHandler, loginHandler } from './auth.controller';
+import {
+  registerHandler,
+  loginHandler,
+  getAllUsersHandler,
+  approveUserHandler,
+  deleteUserHandler,
+} from './auth.controller';
+import { authenticate, authorizeAdmin } from '../../middleware/auth.middleware';
 
 const router = Router();
 
@@ -16,5 +23,27 @@ router.post('/register', registerHandler);
  * @desc Login existing user
  */
 router.post('/login', loginHandler);
+
+/**
+ * @route GET /api/auth/users
+ * @desc Get all users (admin level)
+ */
+router.get('/users', authenticate, authorizeAdmin, getAllUsersHandler);
+
+/**
+ * @route POST /api/auth/approve
+ * @desc Approve a user (admin level)
+ */
+router.post('/approve', authenticate, authorizeAdmin, approveUserHandler);
+
+/**
+ * @route DELETE /api/auth/delete
+ * @desc Delete a user (admin level)
+ */
+router.delete('/delete', authenticate, authorizeAdmin, deleteUserHandler);
+
+/**
+ * Note: Middleware for authentication and authorization should be added to protect routes as necessary.
+ */
 
 export default router;

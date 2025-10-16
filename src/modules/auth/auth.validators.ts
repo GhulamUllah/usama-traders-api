@@ -31,6 +31,15 @@ export const loginSchema = z.object({
   password: z.string().min(6, 'Password must be at least 6 characters long'),
 });
 
-export type RegisterInput = z.infer<typeof registerSchema>;
+export const approveUserSchema = z.object({
+  userId: z.string().min(24, 'Invalid user ID').max(24, 'Invalid user ID'),
+});
 
+export const deleteUserSchema = z.object({
+  userId: z.string().min(24, 'Invalid user ID').max(24, 'Invalid user ID'),
+});
+
+export type RegisterInput = z.infer<typeof registerSchema>;
+export type ApproveUser = z.infer<typeof approveUserSchema>;
+export type DeleteUser = z.infer<typeof deleteUserSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
