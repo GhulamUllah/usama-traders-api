@@ -33,6 +33,7 @@ export const loginSchema = z.object({
 
 export const approveUserSchema = z.object({
   userId: z.string().min(24, 'Invalid user ID').max(24, 'Invalid user ID'),
+  status: z.boolean({ error: 'Status is required' }),
 });
 
 export const deleteUserSchema = z.object({

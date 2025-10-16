@@ -6,9 +6,11 @@ import UserModel from './auth.schema'; // Assuming we have a user model
 import { AuthResponse } from './auth.types';
 import { LoginInput, RegisterInput, ApproveUser, DeleteUser } from './auth.validators';
 import { ObjectId } from 'mongoose';
+import { config } from '../../config';
+import { getUsersPipeline } from './auth.pipeline';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'supersecret';
-const JWT_EXPIRES_IN = (process.env.JWT_EXPIRES_IN || '1d') as SignOptions['expiresIn'];
+const JWT_SECRET = config.auth.jwtSecret;
+const JWT_EXPIRES_IN = (config.auth.jwtExpiresIn || '1d') as SignOptions['expiresIn'];
 
 export const registerUser = async (data: RegisterInput): Promise<AuthResponse> => {
   const { name, email, password } = data;
@@ -46,9 +48,13 @@ export const loginUser = async (data: LoginInput): Promise<AuthResponse> => {
     throw new Error('User is not Approved by admin yet.');
   }
 
-  const token = jwt.sign({ id: (user._id as ObjectId).toString(), email: user.email }, JWT_SECRET, {
-    expiresIn: JWT_EXPIRES_IN,
-  });
+  const token = jwt.sign(
+    { id: (user._id as ObjectId).toString(), email: user.email, role: user.role },
+    JWT_SECRET,
+    {
+      expiresIn: JWT_EXPIRES_IN,
+    },
+  );
 
   return {
     token,
@@ -56,16 +62,13 @@ export const loginUser = async (data: LoginInput): Promise<AuthResponse> => {
   };
 };
 
-export const getAllUsers = async (): Promise<{ users: any[] }> => {
-  const users = await UserModel.find().sort({ createdAt: -1 }); // ✅ Latest first
-
-  return {
-    users,
-  };
+export const getAllUsers = async (): Promise<any[]> => {
+  const users = await UserModel.aggregate(getUsersPipeline() as any);
+  return users;
 };
 
-export const approveUser = async (userId: ApproveUser): Promise<AuthResponse> => {
-  const user = await UserModel.findByIdAndUpdate(userId, { isApproved: true }, { new: true });
+export const approveUser = async ({ userId, status }: ApproveUser): Promise<AuthResponse> => {
+  const user = await UserModel.findByIdAndUpdate(userId, { isApproved: status }, { new: true });
   if (!user) {
     throw new Error('User not found');
   }
@@ -76,8 +79,17 @@ export const approveUser = async (userId: ApproveUser): Promise<AuthResponse> =>
   } as unknown as AuthResponse;
 };
 
-export const deleteUser = async (userId: DeleteUser): Promise<AuthResponse> => {
-  const user = await UserModel.findByIdAndDelete(userId).select('-password');
+export const deleteUser = async (payload: DeleteUser): Promise<AuthResponse> => {
+  const { userId } = payload;
+  const userCheck = await UserModel.findById(userId);
+  let user;
+  if (!userCheck?.isApproved) {
+    user = await UserModel.findByIdAndDelete(userId);
+  } else {
+    user = await UserModel.findByIdAndUpdate(userId, {
+      deletedAt: new Date(),
+    }).select('-password');
+  }
   if (!user) {
     throw new Error('User not found');
   }

@@ -28,7 +28,7 @@ router.post('/login', loginHandler);
  * @route GET /api/auth/users
  * @desc Get all users (admin level)
  */
-router.get('/users', authenticate, authorizeAdmin, getAllUsersHandler);
+router.get('/all', authenticate, authorizeAdmin, getAllUsersHandler);
 
 /**
  * @route POST /api/auth/approve

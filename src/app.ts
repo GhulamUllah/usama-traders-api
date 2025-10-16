@@ -3,7 +3,9 @@ import express, { Application, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import routes from './modules/auth/auth.routes'; // we will create an index.ts inside modules later
+import userRoutes from './modules/auth/auth.routes'; // we will create an index.ts inside modules later
+import costumerRoutes from './modules/auth/auth.routes'; // we will create an index.ts inside modules later
+import transactionRoutes from './modules/auth/auth.routes'; // we will create an index.ts inside modules later
 import { errorHandler } from './middleware/error.middleware';
 import dotenv from 'dotenv';
 import connectDB from './database/connection';
@@ -28,7 +30,9 @@ app.get('/', async (req: Request, res: Response) => {
   }
 });
 
-app.use('/api/v1', routes); // mount all feature modules here
+app.use('/api/v1/user', userRoutes); // mount all feature modules here
+app.use('/api/v1/costumer', costumerRoutes); // mount all feature modules here
+app.use('/api/v1/transaction', transactionRoutes); // mount all feature modules here
 
 // ====== Error Handling ======
 app.use(errorHandler);
