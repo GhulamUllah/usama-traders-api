@@ -1,5 +1,7 @@
 // src/modules/auth/auth.types.ts
 
+import { Document } from 'mongoose';
+
 export interface AuthResponse {
   token: string;
   user: {
@@ -7,4 +9,14 @@ export interface AuthResponse {
     name: string;
     email: string;
   };
+}
+
+export interface IUser extends Document {
+  name: string;
+  email: string;
+  password: string;
+  isApproved: boolean;
+  role: 'user' | 'admin';
+  createdAt: Date;
+  updatedAt: Date;
 }

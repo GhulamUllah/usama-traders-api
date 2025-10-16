@@ -1,15 +1,7 @@
 // src/modules/user/user.model.ts
 
-import mongoose, { Schema, Document, Model } from 'mongoose';
-
-export interface IUser extends Document {
-  name: string;
-  email: string;
-  password: string;
-  role: 'user' | 'admin';
-  createdAt: Date;
-  updatedAt: Date;
-}
+import mongoose, { Schema, Model } from 'mongoose';
+import { IUser } from './auth.types';
 
 const userSchema: Schema<IUser> = new Schema<IUser>(
   {
@@ -36,6 +28,11 @@ const userSchema: Schema<IUser> = new Schema<IUser>(
       type: String,
       enum: ['user', 'admin'],
       default: 'user',
+    },
+    isApproved: {
+      type: Boolean,
+      default: false,
+      select: false,
     },
   },
   { timestamps: true },

@@ -34,15 +34,16 @@ export const registerUser = async (data: RegisterInput): Promise<AuthResponse> =
 export const loginUser = async (data: LoginInput): Promise<AuthResponse> => {
   const { email, password } = data;
 
-  const user = await UserModel.findOne({ email }).select('+password');
+  const user = await UserModel.findOne({ email }).select('+password +isApproved');
   if (!user) {
     throw new Error('Invalid credentials');
   }
-  console.log({ user });
-
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) {
     throw new Error('Invalid credentials');
+  }
+  if (!user.isApproved) {
+    throw new Error('User is not Approved by admin yet.');
   }
 
   const token = jwt.sign({ id: (user._id as ObjectId).toString(), email: user.email }, JWT_SECRET, {
