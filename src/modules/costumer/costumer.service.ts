@@ -5,10 +5,8 @@ import { CostumerResponse } from './costumer.types';
 import CustomerModel from './costumer.schema';
 
 export const getAllCustomers = async (): Promise<any> => {
-  const customer = await CustomerModel.find().sort({ createdAt: -1 });
-  return {
-    customer,
-  };
+  const customer = await CustomerModel.find({ deletedAt: null }).sort({ createdAt: -1 });
+  return customer
 };
 
 export const createCostumer = async (data: CreateCustomer): Promise<any> => {
@@ -30,13 +28,12 @@ export const createCostumer = async (data: CreateCustomer): Promise<any> => {
 };
 
 export const updateCustomer = async (data: UpdateCustomer): Promise<CostumerResponse> => {
-  const { name = '', costumerId, balance } = data;
+  const { name = '', costumerId } = data;
 
   const update = await CustomerModel.findOneAndUpdate(
     { _id: costumerId },
     {
       $set: { name },
-      $inc: { balance: balance || 0 },
     },
     { new: true },
   );

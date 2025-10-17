@@ -31,7 +31,6 @@ export const updateCustomerSchema = z.object({
     .max(50, 'Name must not exceed 50 characters')
     .trim()
     .optional(),
-  balance: z.number().min(1, 'Amount must be at least 1').optional(),
 });
 
 export type CreateCustomer = z.infer<typeof createCostumerSchema>;

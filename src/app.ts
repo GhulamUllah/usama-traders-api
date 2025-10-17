@@ -4,13 +4,12 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import userRoutes from './modules/auth/auth.routes'; // we will create an index.ts inside modules later
-import costumerRoutes from './modules/auth/auth.routes'; // we will create an index.ts inside modules later
-import transactionRoutes from './modules/auth/auth.routes'; // we will create an index.ts inside modules later
+import costumerRoutes from './modules/costumer/costumer.routes'; // we will create an index.ts inside modules later
+import transactionRoutes from './modules/transaction/transaction.routes'; // we will create an index.ts inside modules later
 import { errorHandler } from './middleware/error.middleware';
 import dotenv from 'dotenv';
 import connectDB from './database/connection';
 dotenv.config();
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/usama-backend';
 const app: Application = express();
 
 // ====== Middlewares ======
