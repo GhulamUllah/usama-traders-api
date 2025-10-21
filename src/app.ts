@@ -6,9 +6,12 @@ import morgan from 'morgan';
 import userRoutes from './modules/auth/auth.routes'; // we will create an index.ts inside modules later
 import costumerRoutes from './modules/costumer/costumer.routes'; // we will create an index.ts inside modules later
 import transactionRoutes from './modules/transaction/transaction.routes'; // we will create an index.ts inside modules later
+import productRoutes from './modules/product/product.routes'; // we will create an index.ts inside modules later
+import shopRoutes from './modules/shop/shop.routes'; // we will create an index.ts inside modules later
 import { errorHandler } from './middleware/error.middleware';
 import dotenv from 'dotenv';
 import connectDB from './database/connection';
+import getStatistics from './general.statistics';
 dotenv.config();
 const app: Application = express();
 
@@ -29,9 +32,12 @@ app.get('/', async (req: Request, res: Response) => {
   }
 });
 
+app.get('/api/v1/statistics', getStatistics); // mount all feature modules here
 app.use('/api/v1/user', userRoutes); // mount all feature modules here
 app.use('/api/v1/costumer', costumerRoutes); // mount all feature modules here
 app.use('/api/v1/transaction', transactionRoutes); // mount all feature modules here
+app.use('/api/v1/product', productRoutes); // mount all feature modules here
+app.use('/api/v1/shop', shopRoutes); // mount all feature modules here
 
 // ====== Error Handling ======
 app.use(errorHandler);
