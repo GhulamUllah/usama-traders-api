@@ -15,6 +15,7 @@ import {
   createShop,
   deleteShop,
   getAllShops,
+  getUserShop,
   updateShop,
 } from './shop.service';
 import { AuthRequest } from '../../middleware/auth.middleware';
@@ -54,6 +55,17 @@ export const deleteHandler = async (req: AuthRequest, res: Response, next: NextF
 export const findAllHandler = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const result = await getAllShops();
+    return successResponse(res, 200, 'Shops fetched successful', result);
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+};
+
+
+export const getUserShopHandler = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const result = await getUserShop(req.user);
     return successResponse(res, 200, 'Shops fetched successful', result);
   } catch (error) {
     console.log(error);

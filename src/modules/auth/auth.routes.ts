@@ -7,6 +7,7 @@ import {
   getAllUsersHandler,
   approveUserHandler,
   deleteUserHandler,
+  assignShopHandler,
 } from './auth.controller';
 import { authenticate, authorizeAdmin } from '../../middleware/auth.middleware';
 
@@ -35,6 +36,12 @@ router.get('/all', authenticate, authorizeAdmin, getAllUsersHandler);
  * @desc Approve a user (admin level)
  */
 router.post('/approve', authenticate, authorizeAdmin, approveUserHandler);
+
+/**
+ * @route POST /api/auth/assign-shop
+ * @desc Assign a shop to the user (admin level)
+ */
+router.post('/assign-shop', authenticate, authorizeAdmin, assignShopHandler);
 
 /**
  * @route DELETE /api/auth/delete

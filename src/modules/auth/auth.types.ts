@@ -1,6 +1,6 @@
 // src/modules/auth/auth.types.ts
 
-import { Document } from 'mongoose';
+import { Document, ObjectId } from 'mongoose';
 
 export interface AuthResponse {
   token: string;
@@ -20,4 +20,5 @@ export interface IUser extends Document {
   deletedAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
+  assignedShop?: ObjectId | null;
 }

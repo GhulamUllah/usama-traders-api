@@ -3,9 +3,16 @@
 import { CreateShop, DeleteShop, UpdateShop } from './shop.validators';
 import { ShopResponse } from './shop.types';
 import ShopModel from './shop.schema';
+import UserModel from '../auth/auth.schema';
+import { AuthRequest } from '../../middleware/auth.middleware';
 
 export const getAllShops = async (): Promise<any> => {
   const shop = await ShopModel.find({ deletedAt: null }).sort({ createdAt: -1 });
+  return shop
+};
+
+export const getUserShop = async (user: AuthRequest["user"]): Promise<any> => {
+  const shop = await UserModel.findById((user as any).id).populate('assignedShop').sort({ createdAt: -1 });
   return shop
 };
 

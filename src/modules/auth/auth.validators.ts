@@ -1,5 +1,6 @@
 // src/modules/user/user.validation.ts
 
+import mongoose from 'mongoose';
 import { z } from 'zod';
 
 export const registerSchema = z
@@ -36,11 +37,17 @@ export const approveUserSchema = z.object({
   status: z.boolean({ error: 'Status is required' }),
 });
 
+export const assignedShopSchema = z.object({
+  userId: z.string().min(24, 'Invalid user ID').max(24, 'Invalid user ID'),
+  shopId: z.custom((val) => mongoose.isValidObjectId(val), { message: 'Invalid shop ID' }),
+});
+
 export const deleteUserSchema = z.object({
   userId: z.string().min(24, 'Invalid user ID').max(24, 'Invalid user ID'),
 });
 
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type ApproveUser = z.infer<typeof approveUserSchema>;
+export type AssignedShop = z.infer<typeof assignedShopSchema>;
 export type DeleteUser = z.infer<typeof deleteUserSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;

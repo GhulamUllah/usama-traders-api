@@ -24,6 +24,11 @@ const userSchema: Schema<IUser> = new Schema<IUser>(
       minlength: [6, 'Password must be at least 6 characters'],
       select: false, // Exclude password by default when querying
     },
+    assignedShop: {
+      type: Schema.Types.ObjectId,
+      ref: 'Shop',
+      default: null,
+    },
     role: {
       type: String,
       enum: ['user', 'admin'],

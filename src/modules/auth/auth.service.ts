@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 import jwt, { SignOptions } from 'jsonwebtoken';
 import UserModel from './auth.schema'; // Assuming we have a user model
 import { AuthResponse } from './auth.types';
-import { LoginInput, RegisterInput, ApproveUser, DeleteUser } from './auth.validators';
+import { LoginInput, RegisterInput, ApproveUser, DeleteUser, AssignedShop } from './auth.validators';
 import { ObjectId } from 'mongoose';
 import { config } from '../../config';
 import { getUsersPipeline } from './auth.pipeline';
@@ -75,6 +75,18 @@ export const approveUser = async ({ userId, status }: ApproveUser): Promise<Auth
 
   return {
     message: 'User approved successfully',
+    user,
+  } as unknown as AuthResponse;
+};
+
+export const assignShop = async ({ userId, shopId }: AssignedShop): Promise<AuthResponse> => {
+  const user = await UserModel.findByIdAndUpdate(userId, { assignedShop: shopId }, { new: true });
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  return {
+    message: 'Shop Assigned successfully',
     user,
   } as unknown as AuthResponse;
 };

@@ -13,9 +13,20 @@ export const getUsersPipeline = () => {
       },
     },
     {
+      $lookup: {
+        from: 'shops',
+        localField: 'assignedShop',
+        foreignField: '_id',
+        as: 'assignedShop',
+      }
+    },
+    {
       $addFields: {
         totalOrders: { $size: '$transactions' },
         totalSell: { $sum: '$transactions.amount' },
+        assignedShop: {
+          $first: '$assignedShop'
+        }
       },
     },
     {

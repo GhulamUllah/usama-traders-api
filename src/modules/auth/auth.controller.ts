@@ -8,8 +8,9 @@ import {
   RegisterInput,
   approveUserSchema,
   deleteUserSchema,
+  assignedShopSchema,
 } from './auth.validators';
-import { registerUser, loginUser, getAllUsers, approveUser, deleteUser } from './auth.service';
+import { registerUser, loginUser, getAllUsers, approveUser, deleteUser, assignShop } from './auth.service';
 import { successResponse } from '../../utils/response';
 
 export const registerHandler = async (req: Request, res: Response, next: NextFunction) => {
@@ -48,6 +49,17 @@ export const approveUserHandler = async (req: Request, res: Response, next: Next
     const parsedData = approveUserSchema.parse(req.body);
     const result = await approveUser(parsedData);
     return successResponse(res, 200, 'User approved successfully', result);
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+};
+
+export const assignShopHandler = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const parsedData = assignedShopSchema.parse(req.body);
+    const result = await assignShop(parsedData);
+    return successResponse(res, 200, 'Shop Assigned successfully', result);
   } catch (error) {
     console.log(error);
     next(error);
