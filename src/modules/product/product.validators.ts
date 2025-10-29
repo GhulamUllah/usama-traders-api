@@ -11,6 +11,7 @@ export const createProductSchema = z.object({
     .trim(),
   inStock: z.number().min(1, 'Stock must be at least 1'),
   price: z.number().min(1, 'Price must be at least 1'),
+  discount: z.number().min(1, 'Price must be at least 1').optional(),
   createdBy: z.custom((val) => mongoose.isValidObjectId(val), {
     message: 'Invalid User ID',
   }),
@@ -44,7 +45,9 @@ export const updateProductSchema = z.object({
     .trim()
     .optional(),
   price: z.number().min(1, 'Price must be at least 1').optional(),
-}).refine(({ name, price }) => (name || price) ?? false);
+  discount: z.number().min(1, 'Price must be at least 1').optional(),
+  inStock: z.number().min(1, 'Stock must be at least 1').optional(),
+}).refine(({ name, price, discount, inStock }) => (name || price || discount || inStock) ?? false);
 
 export type GetProduct = z.infer<typeof getProductSchema>;
 export type CreateProduct = z.infer<typeof createProductSchema>;

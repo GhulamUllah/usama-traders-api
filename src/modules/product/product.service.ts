@@ -21,6 +21,7 @@ export const createProduct = async (data: CreateProduct): Promise<any> => {
     name: data.name,
     inStock: data.inStock,
     price: data.price,
+    discount: data.discount,
     createdBy: new mongoose.Types.ObjectId(data.createdBy as string),
     createdIn: new mongoose.Types.ObjectId(data.createdIn as string)
   }

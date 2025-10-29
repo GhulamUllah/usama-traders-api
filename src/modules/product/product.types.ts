@@ -10,6 +10,7 @@ export interface IProduct extends Document {
   name: string;
   inStock: number;
   price: number;
+  discount?: number;
   createdBy: ObjectId
   createdIn: ObjectId
   deletedAt: Date | null;
