@@ -8,7 +8,10 @@ export interface ShopResponse {
 
 export interface IShop extends Document {
   name: string;
+  taxRate: number;
   createdBy: ObjectId;
+  totalSales?: number;
+  totalRevenue?: number;
   deletedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;

@@ -1,19 +1,41 @@
 import mongoose, { Document } from 'mongoose';
 
-// 1️⃣ Define Transaction Types
-export type TransactionType = 'credit' | 'debit';
-export interface TransactionResponse {
-  message: string;
+// 1️⃣ Enums & Type Aliases
+export type PaymentType = 'PARTIAL' | 'FULL';
+
+// 2️⃣ Embedded Subdocument Type
+export interface IProductItem {
+  productId: mongoose.Types.ObjectId;
+  quantity: number;
+  price: number;
+  discount?: number;
 }
 
-// 2️⃣ Transaction Interface
+// 3️⃣ Transaction Interface
 export interface ITransaction extends Document {
   customerId: mongoose.Types.ObjectId;
-  performer: mongoose.Types.ObjectId;
-  amount: number;
-  type: TransactionType;
-  description?: string;
+  sellerId: mongoose.Types.ObjectId;
+  shopId: mongoose.Types.ObjectId;
+  actualAmount: number;
+  productsList: IProductItem[];
+  paidAmount: number;
+  tax: number;
+  flatDiscount: number;
+  totalDiscount: number;
+  paidThroughCash: number;
+  invoiceNumber: string;
+  paidThroughAccountBalance: number;
+  taxRateApplied?: number;
+  previousBalance:number;
+  currentBalance:number;
+  paymentType: PaymentType;
+  deletedAt?: Date | null;
   createdAt?: Date;
   updatedAt?: Date;
-  deletedAt?: Date | null; // optional soft delete
+}
+
+// 4️⃣ Optional API Response Interface
+export interface TransactionResponse {
+  message: string;
+  data?: ITransaction | ITransaction[];
 }

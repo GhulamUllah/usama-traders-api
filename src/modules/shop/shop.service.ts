@@ -17,15 +17,17 @@ export const getUserShop = async (user: AuthRequest["user"]): Promise<any> => {
 };
 
 export const createShop = async (data: CreateShop): Promise<any> => {
-  const { name = '', createdBy } = data;
+  const { name = '', createdBy ,taxRate} = data;
 
-  const isExists = await ShopModel.findOne({ name, createdBy });
+  const isExists = await ShopModel.findOne({ name });
   if (isExists) {
-    throw new Error('Shop already exists with this email');
+    throw new Error('Shop with this name already exists');
   }
 
   const shop = await ShopModel.create({
     name,
+    createdBy,
+    taxRate
   });
 
   return {
@@ -34,13 +36,16 @@ export const createShop = async (data: CreateShop): Promise<any> => {
 };
 
 export const updateShop = async (data: UpdateShop): Promise<ShopResponse> => {
-  const { name = '', shopId } = data;
-
+  const { name = '', shopId ,taxRate} = data;
+  const updateObject = {
+      $set: { name },
+    }
+  if (taxRate) {
+    (updateObject.$set as any).taxRate = taxRate;
+  }
   const update = await ShopModel.findOneAndUpdate(
     { _id: shopId },
-    {
-      $set: { name },
-    },
+    updateObject,
     { new: true },
   );
   if (!update) {

@@ -2,6 +2,7 @@
 
 import mongoose from 'mongoose';
 import { z } from 'zod';
+import { ta } from 'zod/v4/locales';
 
 export const createShopSchema = z.object({
   name: z
@@ -9,6 +10,9 @@ export const createShopSchema = z.object({
     .min(3, 'Name must be at least 3 characters long')
     .max(50, 'Name must not exceed 50 characters')
     .trim(),
+  taxRate: z
+    .number({ error: 'Tax rate must be a number' })
+    .min(0, 'Tax rate cannot be negative').optional().default(0),
   createdBy: z.custom((val) => mongoose.isValidObjectId(val), {
     message: 'Invalid customer ID',
   }),
@@ -30,7 +34,10 @@ export const updateShopSchema = z.object({
     .string()
     .min(3, 'Name must be at least 3 characters long')
     .max(50, 'Name must not exceed 50 characters')
-    .trim()
+    .trim(),
+  taxRate: z
+    .number({ error: 'Tax rate must be a number' })
+    .min(0, 'Tax rate cannot be negative').optional().default(0),
 });
 
 export type CreateShop = z.infer<typeof createShopSchema>;

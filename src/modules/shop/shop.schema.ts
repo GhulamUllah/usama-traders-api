@@ -17,6 +17,18 @@ const shopSchema: Schema<IShop> = new Schema<IShop>(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User"
     },
+    taxRate:{
+      type: Number,
+      default: 0,
+    },
+    totalSales: {
+      type: Number,
+      default: 0,
+    },
+    totalRevenue: {
+      type: Number,
+      default: 0,
+    },
     deletedAt: { type: Date, default: null },
   },
   { timestamps: true },
@@ -25,7 +37,7 @@ const shopSchema: Schema<IShop> = new Schema<IShop>(
 const ShopModel: Model<IShop> =
   mongoose.models.Shop || mongoose.model<IShop>('Shop', shopSchema);
 shopSchema.index({ name: 'text', phoneNumber: 'text' });
-shopSchema.pre('find', function (next) {
+shopSchema.pre('find', function (this: mongoose.Query<any, any, {}, unknown, "find", Record<string, never>>, next: mongoose.CallbackWithoutResultAndOptionalError) {
   this.where({ deletedAt: null });
   next();
 });

@@ -12,13 +12,13 @@ const router = Router();
  * @route POST /api/transactions
  * @desc Create a new transaction (credit or debit)
  */
-router.post('/', createHandler);
+router.post('/create', createHandler);
 
 /**
  * @route GET /api/transactions
  * @desc Get all transactions (admin level)
  */
-router.get('/', findAllHandler);
+router.get('/history', findAllHandler);
 
 /**
  * @route GET /api/transactions/customer/:customerId
