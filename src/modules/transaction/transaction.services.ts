@@ -10,10 +10,10 @@ import ProductModel from '../product/product.schema';
 export const getAllTransactions = async (): Promise<any> => {
   const transactions = await TransactionModel.find()
     .populate('customerId', 'name phoneNumber')
-    .populate('performer', 'name email')
+    .populate('sellerId', 'name')
     .sort({ createdAt: -1 });
 
-  return { transactions };
+  return transactions;
 };
 
 
@@ -139,6 +139,15 @@ export const createTransaction = async (data: CreateTransaction): Promise<any> =
       { $inc: { totalSales: 1, totalRevenue: actualAmount } },
       { session }
     );
+
+    // update product stocks
+    for (const p of finalProducts) {
+      await ProductModel.findByIdAndUpdate(
+        p.productId,
+        { $inc: { inStock: -p.quantity } },
+        { session }
+      );
+    }
 
     await session.commitTransaction();
     session.endSession();

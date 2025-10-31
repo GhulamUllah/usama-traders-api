@@ -6,7 +6,7 @@ const transactionSchema = new Schema<ITransaction>(
   {
     customerId: {
       type: Schema.Types.ObjectId,
-      ref: 'Customer',
+      ref: 'Costumer',
       required: true,
       index: true,
     },
