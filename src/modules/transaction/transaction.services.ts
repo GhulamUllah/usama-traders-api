@@ -150,7 +150,6 @@ export const createTransaction = async (data: CreateTransaction): Promise<any> =
     }
 
     await session.commitTransaction();
-    session.endSession();
 
     return {
       message: "Transaction recorded successfully",
@@ -169,8 +168,9 @@ export const createTransaction = async (data: CreateTransaction): Promise<any> =
     };
   } catch (error) {
     await session.abortTransaction();
-    session.endSession();
     throw new Error("Transaction failed: " + (error as Error).message);
+  } finally {
+    session.endSession();
   }
 };
 
