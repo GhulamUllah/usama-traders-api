@@ -29,7 +29,7 @@ const shopSchema: Schema<IShop> = new Schema<IShop>(
       type: Number,
       default: 0,
     },
-    totalProducts:{
+    totalProducts: {
       type: Number,
       default: 0,
     },
@@ -40,15 +40,15 @@ const shopSchema: Schema<IShop> = new Schema<IShop>(
 
 const ShopModel: Model<IShop> =
   mongoose.models.Shop || mongoose.model<IShop>("Shop", shopSchema);
-  shopSchema.index({ name: "text", phoneNumber: "text" });
-  shopSchema.pre(
-    "find",
-    function (
-      this: mongoose.Query<any, any, {}, unknown, "find", Record<string, never>>,
-      next: mongoose.CallbackWithoutResultAndOptionalError,
-    ) {
-      this.where({ deletedAt: null });
-      next();
-    },
-  );
+shopSchema.index({ name: "text", phoneNumber: "text" });
+shopSchema.pre(
+  "find",
+  function (
+    this: mongoose.Query<any, any, {}, unknown, "find", Record<string, never>>,
+    next: mongoose.CallbackWithoutResultAndOptionalError,
+  ) {
+    this.where({ deletedAt: null });
+    next();
+  },
+);
 export default ShopModel;

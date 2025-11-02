@@ -19,7 +19,7 @@ const getStatistics = async (
     const totalShops = await ShopModel.countDocuments({});
     const totalProducts = await ProductModel.countDocuments({});
     const transactions = await TransactionModel.countDocuments({});
-    const shops = await ShopModel.find({ deletedAt: null }).lean()
+    const shops = await ShopModel.find({ deletedAt: null }).lean();
 
     const generalStats = [
       {
@@ -43,24 +43,27 @@ const getStatistics = async (
         value: transactions,
       },
     ];
-    const shopStats = shops.map(shop=>({
-      name:"Shop: "+shop.name,
-      stats:[
-      {
-        label: "Total Products",
-        value: shop.totalProducts||0,
-      },
-      {
-        label: "Total Revenue",
-        value: currencyFormatter(shop.totalRevenue),
-      },
-      {
-        label: "Total Orders",
-        value: shop.totalSales,
-      },
-    ]
-    }))
-    return successResponse(res, 200, "Statistics fetched!", {generalStats, shopStats});
+    const shopStats = shops.map((shop) => ({
+      name: "Shop: " + shop.name,
+      stats: [
+        {
+          label: "Total Products",
+          value: shop.totalProducts || 0,
+        },
+        {
+          label: "Total Revenue",
+          value: currencyFormatter(shop.totalRevenue),
+        },
+        {
+          label: "Total Orders",
+          value: shop.totalSales,
+        },
+      ],
+    }));
+    return successResponse(res, 200, "Statistics fetched!", {
+      generalStats,
+      shopStats,
+    });
   } catch (error) {
     next(error);
   }

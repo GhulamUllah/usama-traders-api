@@ -12,6 +12,7 @@ import { errorHandler } from "./middleware/error.middleware";
 import dotenv from "dotenv";
 import connectDB from "./database/connection";
 import getStatistics from "./modules/stats/stats.statistics";
+import { config } from "./config";
 dotenv.config();
 const app: Application = express();
 
@@ -26,7 +27,11 @@ app.use(morgan("dev")); // logging
 app.get("/", async (req: Request, res: Response) => {
   try {
     await connectDB();
-    res.json({ success: true, message: "API is running 🚀" });
+    res.json({
+      success: true,
+      message: "API is running 🚀",
+      connectionString: config.db.url,
+    });
   } catch (err: any) {
     res.json({ success: false, message: "DATABASE UNABLE TO CONNECT 🚀" });
   }
