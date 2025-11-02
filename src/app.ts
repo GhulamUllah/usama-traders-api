@@ -11,7 +11,6 @@ import shopRoutes from "./modules/shop/shop.routes"; // we will create an index.
 import { errorHandler } from "./middleware/error.middleware";
 import connectDB from "./database/connection";
 import getStatistics from "./modules/stats/stats.statistics";
-import { config } from "./config";
 const app: Application = express();
 
 // ====== Middlewares ======
@@ -28,7 +27,6 @@ app.get("/", async (req: Request, res: Response) => {
     res.json({
       success: true,
       message: "API is running 🚀",
-      connectionString: config.db.url,
     });
   } catch (err: any) {
     res.json({ success: false, message: "DATABASE UNABLE TO CONNECT 🚀" });
