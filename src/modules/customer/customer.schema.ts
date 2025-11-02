@@ -1,20 +1,20 @@
-// src/modules/Costumer/Costumer.model.ts
+// src/modules/Customer/Customer.model.ts
 
-import mongoose, { Schema, Model } from 'mongoose';
-import { ICostumer } from './costumer.types';
+import mongoose, { Schema, Model } from "mongoose";
+import { ICostumer } from "./customer.types";
 
 const costumerSchema: Schema<ICostumer> = new Schema<ICostumer>(
   {
     name: {
       type: String,
-      minlength: [3, 'Name must be at least 3 characters'],
+      minlength: [3, "Name must be at least 3 characters"],
       trim: true,
-      default: '',
+      default: "",
     },
     phoneNumber: {
       type: String,
       trim: true,
-      required: [true, 'Phone number is required'],
+      required: [true, "Phone number is required"],
       unique: true,
     },
     balance: {
@@ -27,9 +27,10 @@ const costumerSchema: Schema<ICostumer> = new Schema<ICostumer>(
 );
 
 const CostumerModel: Model<ICostumer> =
-  mongoose.models.Costumer || mongoose.model<ICostumer>('Costumer', costumerSchema);
-costumerSchema.index({ name: 'text', phoneNumber: 'text' });
-costumerSchema.pre('find', function (next) {
+  mongoose.models.Customer ||
+  mongoose.model<ICostumer>("Customer", costumerSchema);
+costumerSchema.index({ name: "text", phoneNumber: "text" });
+costumerSchema.pre("find", function (next) {
   this.where({ deletedAt: null });
   next();
 });

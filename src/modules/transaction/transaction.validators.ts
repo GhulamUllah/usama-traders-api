@@ -4,8 +4,34 @@ import { z } from "zod";
 // ✅ Helper for ObjectId validation
 const objectId = z.custom<mongoose.Types.ObjectId>(
   (val) => mongoose.isValidObjectId(val),
-  { message: "Invalid ObjectId" }
+  { message: "Invalid ObjectId" },
 );
+
+// ✅ Get Transaction by ID
+export const getTransactionByIdSchema = z.object({
+  id: objectId,
+});
+
+// ✅ Get All Transactions (with Pagination)
+export const getAllTransactionsSchema = z.object({
+  page: z
+    .string()
+    .transform((val) => parseInt(val))
+    .refine((val) => val > 0, { message: "Page must be greater than 0" })
+    .optional()
+    .default(1),
+
+  limit: z
+    .string()
+    .transform((val) => parseInt(val))
+    .refine((val) => val > 0 && val <= 100, {
+      message: "Limit must be between 1 and 100",
+    })
+    .optional()
+    .default(10),
+
+  search: z.string().trim().optional().default(""),
+});
 
 // ✅ Sub-schema for Product List Items
 const productItemSchema = z.object({
@@ -13,7 +39,7 @@ const productItemSchema = z.object({
   quantity: z
     .number({ error: "Quantity is required" })
     .positive("Quantity must be greater than 0"),
-   price: z
+  price: z
     .number({ error: "Price is required" })
     .positive("Price must be greater than 0"),
   discount: z.number().min(0).optional().default(0),
@@ -51,3 +77,5 @@ export const deleteTransactionSchema = z.object({
 export type CreateTransaction = z.infer<typeof createTransactionSchema>;
 export type GetTransactions = z.infer<typeof getTransactionsSchema>;
 export type DeleteTransaction = z.infer<typeof deleteTransactionSchema>;
+export type GetTransactionById = z.infer<typeof getTransactionByIdSchema>;
+export type GetAllTransactionsQuery = z.infer<typeof getAllTransactionsSchema>;

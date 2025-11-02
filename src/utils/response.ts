@@ -1,6 +1,6 @@
 // src/utils/apiResponse.ts
 
-import { Response } from 'express';
+import { Response } from "express";
 /**
  * A standardized API response format
  */
@@ -13,7 +13,12 @@ export interface ApiResponse<T = any> {
   statusCode: number;
 }
 
-export const successResponse = (res: Response, statusCode: number, message: string, data?: any) => {
+export const successResponse = (
+  res: Response,
+  statusCode: number,
+  message: string,
+  data?: any,
+) => {
   return res.status(statusCode).json({
     success: true,
     message,
@@ -21,7 +26,12 @@ export const successResponse = (res: Response, statusCode: number, message: stri
   });
 };
 
-export const errorResponse = (res: Response, statusCode: number, message: string, errors?: any) => {
+export const errorResponse = (
+  res: Response,
+  statusCode: number,
+  message: string,
+  errors?: any,
+) => {
   return res.status(statusCode).json({
     success: false,
     message,

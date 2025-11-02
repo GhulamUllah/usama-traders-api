@@ -6,7 +6,7 @@ import {
   deleteHandler,
   findAllHandler,
   updateHandler,
-} from "./product.controller";
+} from "./customer.controller";
 import { authenticate, authorizeAdmin } from "../../middleware/auth.middleware";
 
 const router = Router();
@@ -14,6 +14,6 @@ const router = Router();
 router.post("/create", authenticate, createHandler);
 router.post("/update", authenticate, updateHandler);
 router.delete("/delete", authenticate, authorizeAdmin, deleteHandler);
-router.get("/all/:shopId", authenticate, findAllHandler);
+router.get("/all", authenticate, findAllHandler);
 
 export default router;

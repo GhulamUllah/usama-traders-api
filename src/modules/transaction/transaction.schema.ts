@@ -1,24 +1,24 @@
-import mongoose, { Schema, Model, Query } from 'mongoose';
-import { ITransaction } from './transaction.types';
+import mongoose, { Schema, Model, Query } from "mongoose";
+import { ITransaction } from "./transaction.types";
 
 // Schema Definition
 const transactionSchema = new Schema<ITransaction>(
   {
     customerId: {
       type: Schema.Types.ObjectId,
-      ref: 'Costumer',
+      ref: "Customer",
       required: true,
       index: true,
     },
     sellerId: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
       required: true,
       index: true,
     },
     shopId: {
       type: Schema.Types.ObjectId,
-      ref: 'Shop',
+      ref: "Shop",
       required: true,
       index: true,
     },
@@ -35,22 +35,26 @@ const transactionSchema = new Schema<ITransaction>(
       {
         productId: {
           type: Schema.Types.ObjectId,
-          ref: 'Product',
+          ref: "Product",
           required: true,
         },
         quantity: {
-          type: Number, 
+          type: Number,
+          required: true,
+        },
+        name: {
+          type: String,
           required: true,
         },
         price: {
           type: Number,
-          required : true,
+          required: true,
         },
         discount: {
           type: Number,
           default: 0,
         },
-      }
+      },
     ],
     paidAmount: {
       type: Number,
@@ -78,7 +82,7 @@ const transactionSchema = new Schema<ITransaction>(
     },
     paymentType: {
       type: String,
-      enum: ['PARTIAL', 'FULL'],
+      enum: ["PARTIAL", "FULL"],
       required: true,
     },
     taxRateApplied: {
@@ -127,18 +131,19 @@ transactionSchema.pre("save", async function (next) {
   next();
 });
 // Auto-filter soft-deleted documents — ✅ Type-safe version
-transactionSchema.pre<Query<any, any>>('find', function (next) {
+transactionSchema.pre<Query<any, any>>("find", function (next) {
   this.where({ deletedAt: null });
   next();
 });
 
-transactionSchema.pre<Query<any, any>>('findOne', function (next) {
+transactionSchema.pre<Query<any, any>>("findOne", function (next) {
   this.where({ deletedAt: null });
   next();
 });
 
 // Model
 const TransactionModel: Model<ITransaction> =
-  mongoose.models.Transaction || mongoose.model<ITransaction>('Transaction', transactionSchema);
+  mongoose.models.Transaction ||
+  mongoose.model<ITransaction>("Transaction", transactionSchema);
 
 export default TransactionModel;

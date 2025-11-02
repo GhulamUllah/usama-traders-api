@@ -1,22 +1,23 @@
 // src/modules/user/user.validation.ts
 
-import mongoose from 'mongoose';
-import { z } from 'zod';
+import mongoose from "mongoose";
+import { z } from "zod";
 
 export const createProductSchema = z.object({
   name: z
     .string()
-    .min(3, 'Name must be at least 3 characters long')
-    .max(50, 'Name must not exceed 50 characters')
+    .min(3, "Name must be at least 3 characters long")
+    .max(50, "Name must not exceed 50 characters")
     .trim(),
-  inStock: z.number().min(1, 'Stock must be at least 1'),
-  price: z.number().min(1, 'Price must be at least 1'),
-  discount: z.number().min(1, 'Price must be at least 1').optional(),
+  inStock: z.number().min(1, "Stock must be at least 1"),
+  price: z.number().min(1, "Price must be at least 1"),
+  retail: z.number().min(1, "Retail must be at least 1"),
+  discount: z.number().min(1, "Discount must be at least 1").optional(),
   createdBy: z.custom((val) => mongoose.isValidObjectId(val), {
-    message: 'Invalid User ID',
+    message: "Invalid User ID",
   }),
   createdIn: z.custom((val) => mongoose.isValidObjectId(val), {
-    message: 'Invalid Shop ID',
+    message: "Invalid Shop ID",
   }),
 });
 
@@ -24,30 +25,36 @@ export const createProductSchema = z.object({
 
 export const deleteProductSchema = z.object({
   productId: z.custom((val) => mongoose.isValidObjectId(val), {
-    message: 'Invalid product ID',
+    message: "Invalid product ID",
   }),
 });
 
 export const getProductSchema = z.object({
   shopId: z.custom((val) => mongoose.isValidObjectId(val), {
-    message: 'Invalid Shop ID',
+    message: "Invalid Shop ID",
   }),
 });
 
-export const updateProductSchema = z.object({
-  productId: z.custom((val) => mongoose.isValidObjectId(val), {
-    message: 'Invalid product ID',
-  }),
-  name: z
-    .string()
-    .min(3, 'Name must be at least 3 characters long')
-    .max(50, 'Name must not exceed 50 characters')
-    .trim()
-    .optional(),
-  price: z.number().min(1, 'Price must be at least 1').optional(),
-  discount: z.number().min(1, 'Price must be at least 1').optional(),
-  inStock: z.number().min(1, 'Stock must be at least 1').optional(),
-}).refine(({ name, price, discount, inStock }) => (name || price || discount || inStock) ?? false);
+export const updateProductSchema = z
+  .object({
+    productId: z.custom((val) => mongoose.isValidObjectId(val), {
+      message: "Invalid product ID",
+    }),
+    name: z
+      .string()
+      .min(3, "Name must be at least 3 characters long")
+      .max(50, "Name must not exceed 50 characters")
+      .trim()
+      .optional(),
+    price: z.number().min(1, "Price must be at least 1").optional(),
+    retail: z.number().min(1, "Retail must be at least 1").optional(),
+    discount: z.number().min(1, "Discount must be at least 1").optional(),
+    inStock: z.number().min(1, "Stock must be at least 1").optional(),
+  })
+  .refine(
+    ({ name, price, discount, inStock }) =>
+      (name || price || discount || inStock) ?? false,
+  );
 
 export type GetProduct = z.infer<typeof getProductSchema>;
 export type CreateProduct = z.infer<typeof createProductSchema>;

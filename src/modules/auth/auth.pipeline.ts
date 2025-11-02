@@ -6,27 +6,27 @@ export const getUsersPipeline = () => {
     { $sort: { createdAt: -1 } },
     {
       $lookup: {
-        from: 'transactions',
-        localField: '_id',
-        foreignField: 'userId',
-        as: 'transactions',
+        from: "transactions",
+        localField: "_id",
+        foreignField: "userId",
+        as: "transactions",
       },
     },
     {
       $lookup: {
-        from: 'shops',
-        localField: 'assignedShop',
-        foreignField: '_id',
-        as: 'assignedShop',
-      }
+        from: "shops",
+        localField: "assignedShop",
+        foreignField: "_id",
+        as: "assignedShop",
+      },
     },
     {
       $addFields: {
-        totalOrders: { $size: '$transactions' },
-        totalSell: { $sum: '$transactions.amount' },
+        totalOrders: { $size: "$transactions" },
+        totalSell: { $sum: "$transactions.amount" },
         assignedShop: {
-          $first: '$assignedShop'
-        }
+          $first: "$assignedShop",
+        },
       },
     },
     {

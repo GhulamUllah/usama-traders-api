@@ -1,7 +1,7 @@
-import mongoose, { Document } from 'mongoose';
+import mongoose, { Document } from "mongoose";
 
 // 1️⃣ Enums & Type Aliases
-export type PaymentType = 'PARTIAL' | 'FULL';
+export type PaymentType = "PARTIAL" | "FULL";
 
 // 2️⃣ Embedded Subdocument Type
 export interface IProductItem {
@@ -26,8 +26,8 @@ export interface ITransaction extends Document {
   invoiceNumber: string;
   paidThroughAccountBalance: number;
   taxRateApplied?: number;
-  previousBalance:number;
-  currentBalance:number;
+  previousBalance: number;
+  currentBalance: number;
   paymentType: PaymentType;
   deletedAt?: Date | null;
   createdAt?: Date;

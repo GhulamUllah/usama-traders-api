@@ -1,37 +1,41 @@
 // src/modules/Product/Product.model.ts
 
-import mongoose, { Schema, Model } from 'mongoose';
-import { IProduct } from './product.types';
+import mongoose, { Schema, Model } from "mongoose";
+import { IProduct } from "./product.types";
 
 const productSchema: Schema<IProduct> = new Schema<IProduct>(
   {
     name: {
       type: String,
-      minlength: [3, 'Name must be at least 3 characters'],
+      minlength: [3, "Name must be at least 3 characters"],
       trim: true,
       unique: true,
-      required: [true, 'Product Name is Required'],
-      lowercase: true
+      required: [true, "Product Name is Required"],
+      lowercase: true,
     },
     inStock: {
       type: Number,
-      required: [true, 'Total stock is required'],
+      required: [true, "Total stock is required"],
     },
     price: {
       type: Number,
-      required: true
+      required: true,
     },
-    discount:{
+    retail: {
       type: Number,
-      default: 0
+      required: true,
+    },
+    discount: {
+      type: Number,
+      default: 0,
     },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User"
+      ref: "User",
     },
     createdIn: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Shop"
+      ref: "Shop",
     },
     deletedAt: { type: Date, default: null },
   },
@@ -39,8 +43,8 @@ const productSchema: Schema<IProduct> = new Schema<IProduct>(
 );
 
 const ProductModel: Model<IProduct> =
-  mongoose.models.Product || mongoose.model<IProduct>('Product', productSchema);
-productSchema.pre('find', function (next) {
+  mongoose.models.Product || mongoose.model<IProduct>("Product", productSchema);
+productSchema.pre("find", function (next) {
   this.where({ deletedAt: null });
   next();
 });

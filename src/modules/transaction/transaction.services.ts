@@ -1,26 +1,73 @@
-import mongoose from 'mongoose';
-import TransactionModel from './transaction.schema';
-import CustomerModel from '../costumer/costumer.schema';
-import { CreateTransaction, DeleteTransaction, GetTransactions } from './transaction.validators';
-import { TransactionResponse } from './transaction.types';
-import ShopModel from '../shop/shop.schema';
-import ProductModel from '../product/product.schema';
+import mongoose from "mongoose";
+import TransactionModel from "./transaction.schema";
+import CustomerModel from "../customer/customer.schema";
+import {
+  CreateTransaction,
+  DeleteTransaction,
+  GetAllTransactionsQuery,
+  GetTransactionById,
+  GetTransactions,
+} from "./transaction.validators";
+import { TransactionResponse } from "./transaction.types";
+import ShopModel from "../shop/shop.schema";
+import ProductModel from "../product/product.schema";
+import {
+  getCountsPipeline,
+  getFilteredTransactions,
+} from "./transaction.pipelines";
 
 // ✅ Get all transactions (optional filters later)
-export const getAllTransactions = async (): Promise<any> => {
-  const transactions = await TransactionModel.find()
-    .populate('customerId', 'name phoneNumber')
-    .populate('sellerId', 'name')
-    .sort({ createdAt: -1 });
+export const getAllTransactions = async (
+  data: GetAllTransactionsQuery,
+): Promise<any> => {
+  const { page = 1, limit = 10, search } = data;
 
-  return transactions;
+  const matchStage: any = {};
+
+  if (search) {
+    matchStage.$or = [
+      { "customerId.name": { $regex: search, $options: "i" } },
+      { "sellerId.name": { $regex: search, $options: "i" } },
+      { "shopId.name": { $regex: search, $options: "i" } },
+    ];
+  }
+
+  const transactions = await TransactionModel.aggregate(
+    getFilteredTransactions(matchStage, page, limit),
+  );
+
+  // Total count for pagination
+  const countPipeline = getCountsPipeline(matchStage);
+  const countResult = await TransactionModel.aggregate(countPipeline);
+  const totalRecords = countResult[0]?.totalRecords || 0;
+
+  return {
+    data: transactions,
+    totalPages: Math.ceil(totalRecords / limit),
+    totalRecords,
+    currentPage: page,
+  };
 };
 
+// ✅ Get transaction by ID
+export const getTransactionById = async (
+  data: GetTransactionById,
+): Promise<any> => {
+  const transaction = await TransactionModel.findById(data.id)
+    .populate("customerId")
+    .populate("sellerId", "name -_id")
+    .populate("shopId", "name -_id")
+    .sort({ createdAt: -1 });
+
+  return transaction;
+};
 
 /**
  * Create a new transaction (Atomic + Type-safe)
  */
-export const createTransaction = async (data: CreateTransaction): Promise<any> => {
+export const createTransaction = async (
+  data: CreateTransaction,
+): Promise<any> => {
   const {
     customerId,
     sellerId,
@@ -46,7 +93,9 @@ export const createTransaction = async (data: CreateTransaction): Promise<any> =
 
     // ✅ Fetch actual product data for integrity
     const productIds = productsList.map((p) => p.productId);
-    const dbProducts = await ProductModel.find({ _id: { $in: productIds } }).lean();
+    const dbProducts = await ProductModel.find({
+      _id: { $in: productIds },
+    }).lean();
 
     if (dbProducts.length !== productsList.length)
       throw new Error("One or more products not found");
@@ -57,18 +106,19 @@ export const createTransaction = async (data: CreateTransaction): Promise<any> =
 
     const finalProducts = productsList.map((p) => {
       const dbProd = dbProducts.find(
-        (d) => d._id.toString() === p.productId.toString()
+        (d) => d._id.toString() === p.productId.toString(),
       );
       if (!dbProd) throw new Error(`Product ${p.productId} not found`);
 
       const quantity = p.quantity || 1;
       const price = dbProd.price;
+      const name = dbProd.name;
       const itemDiscount = dbProd.discount || 0;
 
       subtotal += price * quantity;
       totalDiscount += itemDiscount * quantity;
 
-      return { productId: dbProd._id, price, quantity };
+      return { productId: dbProd._id, price, quantity, name };
     });
 
     const taxableAmount = Math.max(0, subtotal - totalDiscount - flatDiscount);
@@ -83,7 +133,13 @@ export const createTransaction = async (data: CreateTransaction): Promise<any> =
     let paidThroughAccountBalance = 0;
     let paidThroughCash = paidAmount;
     let currentBalance = previousBalance;
-
+    console.log(
+      useBalance,
+      hasPositiveBalance,
+      previousBalance,
+      actualAmount,
+      paidAmount,
+    );
     if (useBalance && hasPositiveBalance) {
       // Customer has credit balance — use it
       paidThroughAccountBalance = Math.min(previousBalance, actualAmount);
@@ -120,24 +176,25 @@ export const createTransaction = async (data: CreateTransaction): Promise<any> =
           currentBalance,
         },
       ],
-      { session }
+      { session },
     );
 
     // 🔁 Update customer balance
     // - If totalPaid < actualAmount → increase debt
     // - If totalPaid > actualAmount → add credit
     const newBalance = currentBalance + (totalPaid - actualAmount);
+    console.log({ newBalance });
     await CustomerModel.findByIdAndUpdate(
       customerId,
       { $set: { balance: newBalance } },
-      { session }
+      { session },
     );
 
     // 🏪 Update shop stats
     await ShopModel.findByIdAndUpdate(
       shopId,
       { $inc: { totalSales: 1, totalRevenue: actualAmount } },
-      { session }
+      { session },
     );
 
     // update product stocks
@@ -145,7 +202,7 @@ export const createTransaction = async (data: CreateTransaction): Promise<any> =
       await ProductModel.findByIdAndUpdate(
         p.productId,
         { $inc: { inStock: -p.quantity } },
-        { session }
+        { session },
       );
     }
 
@@ -174,20 +231,23 @@ export const createTransaction = async (data: CreateTransaction): Promise<any> =
   }
 };
 
-
-
-
 // ✅ Get all transactions of a specific customer
-export const getCustomerTransactions = async (data: GetTransactions): Promise<any> => {
+export const getCustomerTransactions = async (
+  data: GetTransactions,
+): Promise<any> => {
   const { customerId } = data;
 
-  const transactions = await TransactionModel.find({ customerId }).sort({ createdAt: -1 });
+  const transactions = await TransactionModel.find({ customerId }).sort({
+    createdAt: -1,
+  });
 
   return { transactions };
 };
 
 // ✅ Soft delete transaction (optional)
-export const deleteTransaction = async (data: DeleteTransaction): Promise<TransactionResponse> => {
+export const deleteTransaction = async (
+  data: DeleteTransaction,
+): Promise<TransactionResponse> => {
   const { transactionId } = data;
 
   const update = await TransactionModel.findByIdAndUpdate(
@@ -197,10 +257,10 @@ export const deleteTransaction = async (data: DeleteTransaction): Promise<Transa
   );
 
   if (!update) {
-    throw new Error('Unable to delete transaction');
+    throw new Error("Unable to delete transaction");
   }
 
   return {
-    message: 'Transaction deleted successfully',
+    message: "Transaction deleted successfully",
   };
 };

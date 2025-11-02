@@ -1,22 +1,18 @@
 // src/database/connection.ts
 
-import mongoose from 'mongoose';
-import dotenv from 'dotenv';
-import { logger } from '../utils/logger';
-
-dotenv.config();
-
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/usama-backend';
+import mongoose from "mongoose";
+import { logger } from "../utils/logger";
+import { config } from "../config";
 
 /**
  * Connects to MongoDB using mongoose.
  */
 const connectDB = async (): Promise<any> => {
   try {
-    mongoose.set('strictQuery', true); // Ensures safe queries
-    await mongoose.connect(MONGO_URI);
+    mongoose.set("strictQuery", true); // Ensures safe queries
+    await mongoose.connect(config.db.url);
 
-    logger.info('✅ MongoDB connected successfully');
+    logger.info("✅ MongoDB connected successfully");
 
     return {
       success: true,
@@ -24,7 +20,7 @@ const connectDB = async (): Promise<any> => {
       host: mongoose.connection.host,
     };
   } catch (error: any) {
-    logger.error('❌ MongoDB connection error:', error);
+    logger.error("❌ MongoDB connection error:", error);
     return {
       success: false,
       state: mongoose.connection.readyState,

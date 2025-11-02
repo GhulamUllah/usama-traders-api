@@ -1,38 +1,38 @@
 // src/modules/user/user.model.ts
 
-import mongoose, { Schema, Model } from 'mongoose';
-import { IUser } from './auth.types';
+import mongoose, { Schema, Model } from "mongoose";
+import { IUser } from "./auth.types";
 
 const userSchema: Schema<IUser> = new Schema<IUser>(
   {
     name: {
       type: String,
-      required: [true, 'Name is required'],
-      minlength: [3, 'Name must be at least 3 characters'],
+      required: [true, "Name is required"],
+      minlength: [3, "Name must be at least 3 characters"],
       trim: true,
     },
     email: {
       type: String,
-      required: [true, 'Email is required'],
+      required: [true, "Email is required"],
       unique: true,
       lowercase: true,
-      match: [/^\S+@\S+\.\S+$/, 'Please enter a valid email'],
+      match: [/^\S+@\S+\.\S+$/, "Please enter a valid email"],
     },
     password: {
       type: String,
-      required: [true, 'Password is required'],
-      minlength: [6, 'Password must be at least 6 characters'],
+      required: [true, "Password is required"],
+      minlength: [6, "Password must be at least 6 characters"],
       select: false, // Exclude password by default when querying
     },
     assignedShop: {
       type: Schema.Types.ObjectId,
-      ref: 'Shop',
+      ref: "Shop",
       default: null,
     },
     role: {
       type: String,
-      enum: ['user', 'admin'],
-      default: 'user',
+      enum: ["user", "admin"],
+      default: "user",
     },
     isApproved: {
       type: Boolean,
@@ -44,13 +44,14 @@ const userSchema: Schema<IUser> = new Schema<IUser>(
   { timestamps: true },
 );
 
-const UserModel: Model<IUser> = mongoose.models.User || mongoose.model<IUser>('User', userSchema);
-userSchema.index({ name: 'text', email: 'text' });
-userSchema.pre('find', function (next) {
+const UserModel: Model<IUser> =
+  mongoose.models.User || mongoose.model<IUser>("User", userSchema);
+userSchema.index({ name: "text", email: "text" });
+userSchema.pre("find", function (next) {
   this.where({ deletedAt: null });
   next();
 });
-userSchema.pre('findOne', function (next) {
+userSchema.pre("findOne", function (next) {
   this.where({ deletedAt: null });
   next();
 });

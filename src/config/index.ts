@@ -1,5 +1,5 @@
 // src/config/index.ts
-import dotenv from 'dotenv';
+import dotenv from "dotenv";
 
 dotenv.config();
 
@@ -21,14 +21,13 @@ interface Config {
     saltRounds: number;
   };
 }
-
 export const config: Config = {
   app: {
-    env: process.env.NODE_ENV || 'development',
+    env: process.env.NODE_ENV || "development",
     port: Number(process.env.PORT),
   },
   db: {
-    url: process.env.MONGO_URI as string,
+    url: `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}/${process.env.NODE_ENV === "development" ? process.env.DB_NAME_DEV : process.env.DB_NAME_PROD}?${process.env.DB_PARAMS}`,
   },
   auth: {
     jwtSecret: process.env.JWT_SECRET as string,

@@ -1,6 +1,6 @@
 // src/modules/auth/auth.types.ts
 
-import { Document } from 'mongoose';
+import { Document } from "mongoose";
 
 export interface CostumerResponse {
   message: string;
