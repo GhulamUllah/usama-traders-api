@@ -9,11 +9,9 @@ import transactionRoutes from "./modules/transaction/transaction.routes"; // we 
 import productRoutes from "./modules/product/product.routes"; // we will create an index.ts inside modules later
 import shopRoutes from "./modules/shop/shop.routes"; // we will create an index.ts inside modules later
 import { errorHandler } from "./middleware/error.middleware";
-import dotenv from "dotenv";
 import connectDB from "./database/connection";
 import getStatistics from "./modules/stats/stats.statistics";
 import { config } from "./config";
-dotenv.config();
 const app: Application = express();
 
 // ====== Middlewares ======
