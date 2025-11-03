@@ -7,6 +7,7 @@ import ProductModel from "../product/product.schema";
 import TransactionModel from "../transaction/transaction.schema";
 import { successResponse } from "../../utils/response";
 import { currencyFormatter } from "../../utils/helper";
+import mongoose from "mongoose";
 
 const getStatistics = async (
   req: AuthRequest,
@@ -14,35 +15,47 @@ const getStatistics = async (
   next: NextFunction,
 ) => {
   try {
-    const totalUsers = await UserModel.countDocuments({});
-    const totalCostumers = await CostumerModel.countDocuments({});
-    const totalShops = await ShopModel.countDocuments({});
-    const totalProducts = await ProductModel.countDocuments({});
-    const transactions = await TransactionModel.countDocuments({});
-    const shops = await ShopModel.find({ deletedAt: null }).lean();
-
-    const generalStats = [
-      {
+    console.log(req.user)
+    const isAdmin = (req as any).user.role === "admin";
+    const shopQuery: any = { deletedAt: null };
+    const transactionQuery: any = { deletedAt: null };
+    if (!isAdmin) {
+      shopQuery["_id"] = new mongoose.Types.ObjectId((req as any).user.assignedShop);
+      transactionQuery["sellerId"] = new mongoose.Types.ObjectId((req as any).user.id);
+    }
+    let generalStats: any[] = [];
+    if (isAdmin) {
+      const totalUsers = await UserModel.countDocuments({ deletedAt: null });
+      const totalShops = await ShopModel.countDocuments({ deletedAt: null });
+      generalStats.push({
         label: "Total Users",
         value: totalUsers,
       },
+        {
+          label: "Total Shops",
+          value: totalShops,
+        });
+    }
+    const totalCostumers = await CostumerModel.countDocuments({ deletedAt: null });
+    const totalProducts = await ProductModel.countDocuments({ deletedAt: null });
+    const transactions = await TransactionModel.countDocuments(transactionQuery);
+    generalStats.push(
       {
-        label: "Total Costumers",
+        label: "Total Customers",
         value: totalCostumers,
-      },
-      {
-        label: "Total Shops",
-        value: totalShops,
       },
       {
         label: "Total Products",
         value: totalProducts,
       },
       {
-        label: "Total Orders",
+        label: "Total Transactions",
         value: transactions,
-      },
-    ];
+      }
+    );
+
+    const shops = await ShopModel.find(shopQuery).lean();
+
     const shopStats = shops.map((shop) => ({
       name: "Shop: " + shop.name,
       stats: [

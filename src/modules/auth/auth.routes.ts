@@ -8,6 +8,7 @@ import {
   approveUserHandler,
   deleteUserHandler,
   assignShopHandler,
+  profileHandler
 } from "./auth.controller";
 import { authenticate, authorizeAdmin } from "../../middleware/auth.middleware";
 
@@ -24,6 +25,12 @@ router.post("/register", registerHandler);
  * @desc Login existing user
  */
 router.post("/login", loginHandler);
+
+/**
+ * @route GET /api/auth/profile
+ * @desc Get user profile
+ */
+router.get('/profile', authenticate, profileHandler);
 
 /**
  * @route GET /api/auth/users

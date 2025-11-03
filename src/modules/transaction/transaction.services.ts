@@ -19,10 +19,13 @@ import {
 // ✅ Get all transactions (optional filters later)
 export const getAllTransactions = async (
   data: GetAllTransactionsQuery,
+  role: string,
+  userId: string
 ): Promise<any> => {
   const { page = 1, limit = 10, search } = data;
 
   const matchStage: any = {};
+  if(role==="user") matchStage["sellerId._id"] = new mongoose.Types.ObjectId(userId);
 
   if (search) {
     matchStage.$or = [
@@ -31,7 +34,6 @@ export const getAllTransactions = async (
       { "shopId.name": { $regex: search, $options: "i" } },
     ];
   }
-
   const transactions = await TransactionModel.aggregate(
     getFilteredTransactions(matchStage, page, limit),
   );
@@ -52,8 +54,9 @@ export const getAllTransactions = async (
 // ✅ Get transaction by ID
 export const getTransactionById = async (
   data: GetTransactionById,
+  userId: string
 ): Promise<any> => {
-  const transaction = await TransactionModel.findById(data.id)
+  const transaction = await TransactionModel.findOne({ _id: data.id, sellerId:new mongoose.Types.ObjectId(userId) })
     .populate("customerId")
     .populate("sellerId", "name -_id")
     .populate("shopId", "name -_id")
@@ -133,13 +136,7 @@ export const createTransaction = async (
     let paidThroughAccountBalance = 0;
     let paidThroughCash = paidAmount;
     let currentBalance = previousBalance;
-    console.log(
-      useBalance,
-      hasPositiveBalance,
-      previousBalance,
-      actualAmount,
-      paidAmount,
-    );
+   
     if (useBalance && hasPositiveBalance) {
       // Customer has credit balance — use it
       paidThroughAccountBalance = Math.min(previousBalance, actualAmount);
@@ -183,10 +180,10 @@ export const createTransaction = async (
     // - If totalPaid < actualAmount → increase debt
     // - If totalPaid > actualAmount → add credit
     const newBalance = currentBalance + (totalPaid - actualAmount);
-    console.log({ newBalance });
+
     await CustomerModel.findByIdAndUpdate(
       customerId,
-      { $set: { balance: newBalance } },
+      { $set: { balance: newBalance }, $inc: { totalSpent: totalPaid, totalOrders: 1 } },
       { session },
     );
 

@@ -21,6 +21,14 @@ const costumerSchema: Schema<ICostumer> = new Schema<ICostumer>(
       type: Number,
       default: 0,
     },
+    totalSpent: {
+      type: Number,
+      default: 0,
+    },
+    totalOrders: {
+      type: Number,
+      default: 0,
+    },
     deletedAt: { type: Date, default: null },
   },
   { timestamps: true },

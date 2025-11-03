@@ -46,6 +46,7 @@ export const registerUser = async (
       id: (user._id as string).toString(),
       name: user.name,
       email: user.email,
+      role: user.role,
     },
   };
 };
@@ -71,7 +72,10 @@ export const loginUser = async (data: LoginInput): Promise<AuthResponse> => {
     {
       id: (user._id as ObjectId).toString(),
       email: user.email,
+      name: user.name,
       role: user.role,
+      assignedShop: user?.assignedShop,
+      photo_url: "https://ui-avatars.com/api/?name=" + user.name.replace(" ", "+"),
     },
     JWT_SECRET,
     {
@@ -85,6 +89,7 @@ export const loginUser = async (data: LoginInput): Promise<AuthResponse> => {
       id: (user._id as string).toString(),
       name: user.name,
       email: user.email,
+      role: user.role,
     },
   };
 };

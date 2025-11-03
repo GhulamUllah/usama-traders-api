@@ -20,7 +20,7 @@ router.post("/create", authenticate, createHandler);
  * @route GET /api/transactions
  * @desc Get all transactions (admin level)
  */
-router.get("/history", authenticate, authorizeAdmin, findAllHandler);
+router.get("/history", authenticate, findAllHandler);
 
 /**
  * @route GET /api/transactions/:id

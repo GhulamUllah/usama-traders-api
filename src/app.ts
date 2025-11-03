@@ -11,6 +11,7 @@ import shopRoutes from "./modules/shop/shop.routes"; // we will create an index.
 import { errorHandler } from "./middleware/error.middleware";
 import connectDB from "./database/connection";
 import getStatistics from "./modules/stats/stats.statistics";
+import { authenticate } from "./middleware/auth.middleware";
 const app: Application = express();
 
 // ====== Middlewares ======
@@ -33,7 +34,7 @@ app.get("/", async (req: Request, res: Response) => {
   }
 });
 
-app.get("/api/v1/statistics", getStatistics); // mount all feature modules here
+app.get("/api/v1/statistics",authenticate, getStatistics); // mount all feature modules here
 app.use("/api/v1/user", userRoutes); // mount all feature modules here
 app.use("/api/v1/customer", costumerRoutes); // mount all feature modules here
 app.use("/api/v1/pos/sale", transactionRoutes); // mount all feature modules here

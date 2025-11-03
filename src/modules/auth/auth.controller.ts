@@ -19,6 +19,7 @@ import {
   assignShop,
 } from "./auth.service";
 import { successResponse } from "../../utils/response";
+import { AuthRequest } from "../../middleware/auth.middleware";
 
 export const registerHandler = async (
   req: Request,
@@ -57,6 +58,20 @@ export const getAllUsersHandler = async (
   try {
     const result = await getAllUsers();
     return successResponse(res, 200, "Users fetched successfully", result);
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+};
+
+export const profileHandler = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const user = req.user;
+    return successResponse(res, 200, "User profile fetched successfully", user);
   } catch (error) {
     console.log(error);
     next(error);

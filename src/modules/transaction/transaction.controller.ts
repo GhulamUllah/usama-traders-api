@@ -7,7 +7,7 @@ import {
   getTransactionByIdSchema,
   getTransactionsSchema,
 } from "./transaction.validators";
-import { successResponse } from "../../utils/response";
+import { errorResponse, successResponse } from "../../utils/response";
 import {
   createTransaction,
   deleteTransaction,
@@ -15,6 +15,7 @@ import {
   getCustomerTransactions,
   getTransactionById,
 } from "./transaction.services";
+import { AuthRequest } from "../../middleware/auth.middleware";
 
 // ✅ Create Transaction (credit/debit)
 export const createHandler = async (
@@ -40,13 +41,14 @@ export const createHandler = async (
 
 // ✅ Get transaction by ID
 export const getByIdHandler = async (
-  req: Request,
+  req: AuthRequest,
   res: Response,
   next: NextFunction,
 ) => {
   try {
     const parsedData = getTransactionByIdSchema.parse(req.params);
-    const result = await getTransactionById(parsedData);
+    const result = await getTransactionById(parsedData,(req as any).user.id);
+    if(!result) return errorResponse(res,404,"You are not authorized to access this transaction or it does not exist");
     return successResponse(
       res,
       200,
@@ -60,13 +62,13 @@ export const getByIdHandler = async (
 
 // ✅ Get all transactions (admin-level)
 export const findAllHandler = async (
-  req: Request,
+  req: AuthRequest,
   res: Response,
   next: NextFunction,
 ) => {
   try {
     const parsedQuery = getAllTransactionsSchema.parse(req.query);
-    const result = await getAllTransactions(parsedQuery);
+    const result = await getAllTransactions(parsedQuery, (req as any).user.role, (req as any).user.id);
     return successResponse(
       res,
       200,

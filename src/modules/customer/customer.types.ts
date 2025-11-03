@@ -9,6 +9,8 @@ export interface CostumerResponse {
 export interface ICostumer extends Document {
   name?: string;
   phoneNumber: string;
+  totalSpent: number;
+  totalOrders: number;
   balance: number;
   deletedAt: Date | null;
   createdAt: Date;
