@@ -12,7 +12,7 @@ export const createProductSchema = z.object({
   inStock: z.number().min(1, "Stock must be at least 1"),
   price: z.number().min(1, "Price must be at least 1"),
   retail: z.number().min(1, "Retail must be at least 1"),
-  discount: z.number().min(1, "Discount must be at least 1").optional(),
+  discount: z.number().min(0, "Discount must be at least 0").optional(),
   createdBy: z.custom((val) => mongoose.isValidObjectId(val), {
     message: "Invalid User ID",
   }),
@@ -48,7 +48,7 @@ export const updateProductSchema = z
       .optional(),
     price: z.number().min(1, "Price must be at least 1").optional(),
     retail: z.number().min(1, "Retail must be at least 1").optional(),
-    discount: z.number().min(1, "Discount must be at least 1").optional(),
+    discount: z.number().min(0, "Discount must be at least 0").optional(),
     inStock: z.number().min(1, "Stock must be at least 1").optional(),
   })
   .refine(

@@ -20,12 +20,13 @@ import {
 export const getAllTransactions = async (
   data: GetAllTransactionsQuery,
   role: string,
-  userId: string
+  userId: string,
 ): Promise<any> => {
   const { page = 1, limit = 10, search } = data;
 
   const matchStage: any = {};
-  if(role==="user") matchStage["sellerId._id"] = new mongoose.Types.ObjectId(userId);
+  if (role === "user")
+    matchStage["sellerId._id"] = new mongoose.Types.ObjectId(userId);
 
   if (search) {
     matchStage.$or = [
@@ -54,9 +55,12 @@ export const getAllTransactions = async (
 // ✅ Get transaction by ID
 export const getTransactionById = async (
   data: GetTransactionById,
-  userId: string
+  userId: string,
 ): Promise<any> => {
-  const transaction = await TransactionModel.findOne({ _id: data.id, sellerId:new mongoose.Types.ObjectId(userId) })
+  const transaction = await TransactionModel.findOne({
+    _id: data.id,
+    sellerId: new mongoose.Types.ObjectId(userId),
+  })
     .populate("customerId")
     .populate("sellerId", "name -_id")
     .populate("shopId", "name -_id")
@@ -71,157 +75,144 @@ export const getTransactionById = async (
 export const createTransaction = async (
   data: CreateTransaction,
 ): Promise<any> => {
-  const {
-    customerId,
-    sellerId,
-    shopId,
-    productsList,
-    flatDiscount = 0,
-    paidAmount = 0,
-    useBalance = false,
-  } = data;
-
   const session = await mongoose.startSession();
-  session.startTransaction();
 
   try {
-    // 🧾 Verify required references
-    const [customer, shop] = await Promise.all([
-      CustomerModel.findById(customerId).session(session),
-      ShopModel.findById(shopId).session(session),
-    ]);
+    return await session.withTransaction(async () => {
+      const {
+        customerId,
+        sellerId,
+        shopId,
+        productsList,
+        flatDiscount = 0,
+        paidAmount = 0,
+        useBalance = false,
+      } = data;
 
-    if (!customer) throw new Error("Customer not found");
-    if (!shop) throw new Error("Shop not found");
+      // Fetch references
+      const customer =
+        await CustomerModel.findById(customerId).session(session);
+      const shop = await ShopModel.findById(shopId).session(session);
+      if (!customer) throw new Error("Customer not found");
+      if (!shop) throw new Error("Shop not found");
 
-    // ✅ Fetch actual product data for integrity
-    const productIds = productsList.map((p) => p.productId);
-    const dbProducts = await ProductModel.find({
-      _id: { $in: productIds },
-    }).lean();
+      // Fetch products
+      const productIds = productsList.map((p) => p.productId);
+      const dbProducts = await ProductModel.find({
+        _id: { $in: productIds },
+      }).lean();
+      if (dbProducts.length !== productsList.length)
+        throw new Error("One or more products not found");
 
-    if (dbProducts.length !== productsList.length)
-      throw new Error("One or more products not found");
+      // Compute totals
+      let subtotal = 0;
+      let totalDiscount = 0;
 
-    // 🧮 Compute actual totals
-    let subtotal = 0;
-    let totalDiscount = 0;
+      const finalProducts = productsList.map((p) => {
+        const dbProd = dbProducts.find(
+          (d) => d._id.toString() === p.productId.toString(),
+        );
+        if (!dbProd) throw new Error(`Product ${p.productId} not found`);
+        const quantity = p.quantity || 1;
+        subtotal += dbProd.price * quantity;
+        totalDiscount += (dbProd.discount || 0) * quantity;
+        return {
+          productId: dbProd._id,
+          price: dbProd.price,
+          quantity,
+          name: dbProd.name,
+        };
+      });
 
-    const finalProducts = productsList.map((p) => {
-      const dbProd = dbProducts.find(
-        (d) => d._id.toString() === p.productId.toString(),
+      const taxableAmount = Math.max(
+        0,
+        subtotal - totalDiscount - flatDiscount,
       );
-      if (!dbProd) throw new Error(`Product ${p.productId} not found`);
+      const taxRate = shop.taxRate || 0;
+      const tax = (taxRate / 100) * taxableAmount;
+      const actualAmount = taxableAmount + tax;
 
-      const quantity = p.quantity || 1;
-      const price = dbProd.price;
-      const name = dbProd.name;
-      const itemDiscount = dbProd.discount || 0;
+      const previousBalance = customer.balance || 0;
+      const hasPositiveBalance = previousBalance > 0;
 
-      subtotal += price * quantity;
-      totalDiscount += itemDiscount * quantity;
+      let paidThroughAccountBalance = 0;
+      let paidThroughCash = paidAmount;
+      let currentBalance = previousBalance;
 
-      return { productId: dbProd._id, price, quantity, name };
-    });
+      if (useBalance && hasPositiveBalance) {
+        paidThroughAccountBalance = Math.min(previousBalance, actualAmount);
+        paidThroughCash = Math.max(0, paidAmount - paidThroughAccountBalance);
+        currentBalance = previousBalance - paidThroughAccountBalance;
+      }
 
-    const taxableAmount = Math.max(0, subtotal - totalDiscount - flatDiscount);
-    const taxRate = shop.taxRate || 0;
-    const tax = (taxRate / 100) * taxableAmount;
-    const actualAmount = taxableAmount + tax;
+      const totalPaid = paidThroughCash + paidThroughAccountBalance;
+      const paymentType = totalPaid >= actualAmount ? "FULL" : "PARTIAL";
 
-    const previousBalance = customer.balance || 0;
-    const hasPositiveBalance = previousBalance > 0;
-
-    // 💰 Balance handling logic
-    let paidThroughAccountBalance = 0;
-    let paidThroughCash = paidAmount;
-    let currentBalance = previousBalance;
-   
-    if (useBalance && hasPositiveBalance) {
-      // Customer has credit balance — use it
-      paidThroughAccountBalance = Math.min(previousBalance, actualAmount);
-      paidThroughCash = Math.max(0, paidAmount - paidThroughAccountBalance);
-      currentBalance = previousBalance - paidThroughAccountBalance;
-    } else {
-      // Negative or zero balance, no balance usage
-      paidThroughAccountBalance = 0;
-      paidThroughCash = paidAmount;
-      currentBalance = previousBalance;
-    }
-
-    // Determine payment type
-    const totalPaid = paidThroughCash + paidThroughAccountBalance;
-    const paymentType = totalPaid >= actualAmount ? "FULL" : "PARTIAL";
-
-    // ✅ Create transaction record
-    const [transaction] = await TransactionModel.create(
-      [
-        {
-          customerId,
-          sellerId,
-          shopId,
-          actualAmount,
-          productsList: finalProducts,
-          paidAmount: totalPaid,
-          flatDiscount,
-          totalDiscount,
-          tax,
-          paidThroughCash,
-          paidThroughAccountBalance,
-          paymentType,
-          previousBalance,
-          currentBalance,
-        },
-      ],
-      { session },
-    );
-
-    // 🔁 Update customer balance
-    // - If totalPaid < actualAmount → increase debt
-    // - If totalPaid > actualAmount → add credit
-    const newBalance = currentBalance + (totalPaid - actualAmount);
-
-    await CustomerModel.findByIdAndUpdate(
-      customerId,
-      { $set: { balance: newBalance }, $inc: { totalSpent: totalPaid, totalOrders: 1 } },
-      { session },
-    );
-
-    // 🏪 Update shop stats
-    await ShopModel.findByIdAndUpdate(
-      shopId,
-      { $inc: { totalSales: 1, totalRevenue: actualAmount } },
-      { session },
-    );
-
-    // update product stocks
-    for (const p of finalProducts) {
-      await ProductModel.findByIdAndUpdate(
-        p.productId,
-        { $inc: { inStock: -p.quantity } },
+      const [transaction] = await TransactionModel.create(
+        [
+          {
+            customerId,
+            sellerId,
+            shopId,
+            actualAmount,
+            productsList: finalProducts,
+            paidAmount: totalPaid,
+            flatDiscount,
+            totalDiscount,
+            tax,
+            paidThroughCash,
+            paidThroughAccountBalance,
+            paymentType,
+            previousBalance,
+            currentBalance,
+          },
+        ],
         { session },
       );
-    }
 
-    await session.commitTransaction();
+      const newBalance = currentBalance + (totalPaid - actualAmount);
 
-    return {
-      message: "Transaction recorded successfully",
-      transaction,
-      calculated: {
-        subtotal,
-        totalDiscount,
-        tax,
-        actualAmount,
-        paymentType,
-        paidThroughCash,
-        paidThroughAccountBalance,
-        previousBalance,
-        currentBalance: newBalance,
-      },
-    };
+      await Promise.all([
+        CustomerModel.findByIdAndUpdate(
+          customerId,
+          {
+            $set: { balance: newBalance },
+            $inc: { totalSpent: totalPaid, totalOrders: 1 },
+          },
+          { session },
+        ),
+        ShopModel.findByIdAndUpdate(
+          shopId,
+          { $inc: { totalSales: 1, totalRevenue: actualAmount } },
+          { session },
+        ),
+        ...finalProducts.map((p) =>
+          ProductModel.findByIdAndUpdate(
+            p.productId,
+            { $inc: { inStock: -p.quantity } },
+            { session },
+          ),
+        ),
+      ]);
+
+      return {
+        message: "Transaction recorded successfully",
+        transaction,
+        calculated: {
+          subtotal,
+          totalDiscount,
+          tax,
+          actualAmount,
+          paymentType,
+          paidThroughCash,
+          paidThroughAccountBalance,
+          previousBalance,
+          currentBalance: newBalance,
+        },
+      };
+    });
   } catch (error) {
-    await session.abortTransaction();
+    console.error("Transaction failed:", error);
     throw new Error("Transaction failed: " + (error as Error).message);
   } finally {
     session.endSession();

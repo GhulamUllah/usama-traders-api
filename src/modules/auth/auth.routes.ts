@@ -8,7 +8,7 @@ import {
   approveUserHandler,
   deleteUserHandler,
   assignShopHandler,
-  profileHandler
+  profileHandler,
 } from "./auth.controller";
 import { authenticate, authorizeAdmin } from "../../middleware/auth.middleware";
 
@@ -30,7 +30,7 @@ router.post("/login", loginHandler);
  * @route GET /api/auth/profile
  * @desc Get user profile
  */
-router.get('/profile', authenticate, profileHandler);
+router.get("/profile", authenticate, profileHandler);
 
 /**
  * @route GET /api/auth/users

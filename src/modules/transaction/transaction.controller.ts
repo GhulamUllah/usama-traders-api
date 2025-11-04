@@ -47,8 +47,13 @@ export const getByIdHandler = async (
 ) => {
   try {
     const parsedData = getTransactionByIdSchema.parse(req.params);
-    const result = await getTransactionById(parsedData,(req as any).user.id);
-    if(!result) return errorResponse(res,404,"You are not authorized to access this transaction or it does not exist");
+    const result = await getTransactionById(parsedData, (req as any).user.id);
+    if (!result)
+      return errorResponse(
+        res,
+        404,
+        "You are not authorized to access this transaction or it does not exist",
+      );
     return successResponse(
       res,
       200,
@@ -68,7 +73,11 @@ export const findAllHandler = async (
 ) => {
   try {
     const parsedQuery = getAllTransactionsSchema.parse(req.query);
-    const result = await getAllTransactions(parsedQuery, (req as any).user.role, (req as any).user.id);
+    const result = await getAllTransactions(
+      parsedQuery,
+      (req as any).user.role,
+      (req as any).user.id,
+    );
     return successResponse(
       res,
       200,

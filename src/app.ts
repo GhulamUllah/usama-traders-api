@@ -34,7 +34,7 @@ app.get("/", async (req: Request, res: Response) => {
   }
 });
 
-app.get("/api/v1/statistics",authenticate, getStatistics); // mount all feature modules here
+app.get("/api/v1/statistics", authenticate, getStatistics); // mount all feature modules here
 app.use("/api/v1/user", userRoutes); // mount all feature modules here
 app.use("/api/v1/customer", costumerRoutes); // mount all feature modules here
 app.use("/api/v1/pos/sale", transactionRoutes); // mount all feature modules here

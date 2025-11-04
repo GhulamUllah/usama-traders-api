@@ -41,6 +41,7 @@ export const createProduct = async (data: CreateProduct): Promise<any> => {
     await ShopModel.findByIdAndUpdate(data.createdIn, {
       $inc: { totalProducts: 1 },
     }).session(session);
+    await session.commitTransaction();
     return {
       product,
     };

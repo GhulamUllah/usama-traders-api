@@ -15,30 +15,41 @@ const getStatistics = async (
   next: NextFunction,
 ) => {
   try {
-    console.log(req.user)
+    console.log(req.user);
     const isAdmin = (req as any).user.role === "admin";
     const shopQuery: any = { deletedAt: null };
     const transactionQuery: any = { deletedAt: null };
     if (!isAdmin) {
-      shopQuery["_id"] = new mongoose.Types.ObjectId((req as any).user.assignedShop);
-      transactionQuery["sellerId"] = new mongoose.Types.ObjectId((req as any).user.id);
+      shopQuery["_id"] = new mongoose.Types.ObjectId(
+        (req as any).user.assignedShop,
+      );
+      transactionQuery["sellerId"] = new mongoose.Types.ObjectId(
+        (req as any).user.id,
+      );
     }
     let generalStats: any[] = [];
     if (isAdmin) {
       const totalUsers = await UserModel.countDocuments({ deletedAt: null });
       const totalShops = await ShopModel.countDocuments({ deletedAt: null });
-      generalStats.push({
-        label: "Total Users",
-        value: totalUsers,
-      },
+      generalStats.push(
+        {
+          label: "Total Users",
+          value: totalUsers,
+        },
         {
           label: "Total Shops",
           value: totalShops,
-        });
+        },
+      );
     }
-    const totalCostumers = await CostumerModel.countDocuments({ deletedAt: null });
-    const totalProducts = await ProductModel.countDocuments({ deletedAt: null });
-    const transactions = await TransactionModel.countDocuments(transactionQuery);
+    const totalCostumers = await CostumerModel.countDocuments({
+      deletedAt: null,
+    });
+    const totalProducts = await ProductModel.countDocuments({
+      deletedAt: null,
+    });
+    const transactions =
+      await TransactionModel.countDocuments(transactionQuery);
     generalStats.push(
       {
         label: "Total Customers",
@@ -51,7 +62,7 @@ const getStatistics = async (
       {
         label: "Total Transactions",
         value: transactions,
-      }
+      },
     );
 
     const shops = await ShopModel.find(shopQuery).lean();
@@ -73,6 +84,7 @@ const getStatistics = async (
         },
       ],
     }));
+
     return successResponse(res, 200, "Statistics fetched!", {
       generalStats,
       shopStats,

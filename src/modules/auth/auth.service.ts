@@ -75,7 +75,8 @@ export const loginUser = async (data: LoginInput): Promise<AuthResponse> => {
       name: user.name,
       role: user.role,
       assignedShop: user?.assignedShop,
-      photo_url: "https://ui-avatars.com/api/?name=" + user.name.replace(" ", "+"),
+      photo_url:
+        "https://ui-avatars.com/api/?name=" + user.name.replace(" ", "+"),
     },
     JWT_SECRET,
     {
