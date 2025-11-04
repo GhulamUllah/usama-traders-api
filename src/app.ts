@@ -9,7 +9,6 @@ import transactionRoutes from "./modules/transaction/transaction.routes"; // we 
 import productRoutes from "./modules/product/product.routes"; // we will create an index.ts inside modules later
 import shopRoutes from "./modules/shop/shop.routes"; // we will create an index.ts inside modules later
 import { errorHandler } from "./middleware/error.middleware";
-import connectDB from "./database/connection";
 import getStatistics from "./modules/stats/stats.statistics";
 import { authenticate } from "./middleware/auth.middleware";
 const app: Application = express();
@@ -24,7 +23,6 @@ app.use(morgan("dev")); // logging
 // ====== Routes ======
 app.get("/", async (req: Request, res: Response) => {
   try {
-    await connectDB();
     res.json({
       success: true,
       message: "API is running 🚀",
