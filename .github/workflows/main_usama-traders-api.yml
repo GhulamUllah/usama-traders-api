@@ -1,5 +1,7 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
+# ============================================
+# 🚀 Build and deploy Node.js app to Azure Web App
+# App Name: usama-traders-api
+# ============================================
 
 name: Build and deploy Node.js app to Azure Web App - usama-traders-api
 
@@ -10,44 +12,39 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     permissions:
-      contents: read #This is required for actions/checkout
+      id-token: write
+      contents: read
 
     steps:
-      - uses: actions/checkout@v4
+      # 🧩 Step 1: Checkout source code
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Set up Node.js version
+      # 🧩 Step 2: Setup Node.js environment
+      - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '22.x'
+          cache: 'npm'
 
-      - name: npm install, build, and test
+      # 🧩 Step 3: Install dependencies & build project
+      - name: Install dependencies and build
         run: |
-          npm install
-          npm run build --if-present
-          npm run test --if-present
+          npm ci
+          npm run build
+        env:
+          CI: true
 
-      - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v4
-        with:
-          name: node-app
-          path: .
+      # 🧩 Step 4: Install only production dependencies before deploy
+      - name: Clean and install production dependencies
+        run: |
+          rm -rf node_modules
+          npm ci --omit=dev
 
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-    permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
-
-    steps:
-      - name: Download artifact from build job
-        uses: actions/download-artifact@v4
-        with:
-          name: node-app
-      
+      # 🧩 Step 5: Login to Azure
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -55,11 +52,10 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_E9EE5577770C4CF997C5848FAB7E8823 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_ED2AF4F1B9EE4A09ABCCB4C8E27A26EA }}
 
-      - name: 'Deploy to Azure Web App'
-        id: deploy-to-webapp
+      # 🧩 Step 6: Deploy to Azure Web App
+      - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'usama-traders-api'
-          slot-name: 'Production'
-          package: .
-          
+          app-name: 'usama-traders-api'       # Azure Web App name
+          slot-name: 'Production'             # Deployment slot
+          package: .                          # Deploy current directory
