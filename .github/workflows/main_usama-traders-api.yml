@@ -1,8 +1,3 @@
-# ============================================
-# 🚀 Build and deploy Node.js app to Azure Web App
-# App Name: usama-traders-api
-# ============================================
-
 name: Build and deploy Node.js app to Azure Web App - usama-traders-api
 
 on:
@@ -12,39 +7,43 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js version
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22.x'
+
+      - name: Install dependencies and build
+        run: |
+          npm ci
+          npm run build
+
+      - name: Upload artifact for deployment
+        uses: actions/upload-artifact@v4
+        with:
+          name: build
+          path: .
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
     permissions:
       id-token: write
       contents: read
 
     steps:
-      # 🧩 Step 1: Checkout source code
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      # 🧩 Step 2: Setup Node.js environment
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
         with:
-          node-version: '22.x'
-          cache: 'npm'
+          name: build
 
-      # 🧩 Step 3: Install dependencies & build project
-      - name: Install dependencies and build
-        run: |
-          npm ci
-          npm run build
-        env:
-          CI: true
-
-      # 🧩 Step 4: Install only production dependencies before deploy
-      - name: Clean and install production dependencies
-        run: |
-          rm -rf node_modules
-          npm ci --omit=dev
-
-      # 🧩 Step 5: Login to Azure
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -52,10 +51,9 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_E9EE5577770C4CF997C5848FAB7E8823 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_ED2AF4F1B9EE4A09ABCCB4C8E27A26EA }}
 
-      # 🧩 Step 6: Deploy to Azure Web App
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'usama-traders-api'       # Azure Web App name
-          slot-name: 'Production'             # Deployment slot
-          package: .                          # Deploy current directory
+          app-name: 'usama-traders-api'
+          slot-name: 'Production'
+          package: .
