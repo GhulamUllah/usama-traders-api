@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "cross-env NODE_ENV=development ts-node-dev --respawn --transpile-only src/server.ts",
-    "start": "cross-env NODE_ENV=production node dist/server.js",
+    "start": "NODE_ENV=production node dist/server.js",
     "vercel-build": "npm run build",
     "lint": "eslint 'src/**/*.{ts,js}'",
     "format": "prettier --write 'src/**/*.{ts,js,json,md}'",
