@@ -15,6 +15,7 @@ import {
   getCountsPipeline,
   getFilteredTransactions,
 } from "./transaction.pipelines";
+import SalesmanModel from "../salesman/salesman.schema";
 
 // ✅ Get all transactions (optional filters later)
 export const getAllTransactions = async (
@@ -87,14 +88,19 @@ export const createTransaction = async (
         flatDiscount = 0,
         paidAmount = 0,
         useBalance = false,
+        salesmanId
       } = data;
 
       // Fetch references
       const customer =
         await CustomerModel.findById(customerId).session(session);
       const shop = await ShopModel.findById(shopId).session(session);
+      let salesman = null;
+      if (salesmanId) salesman = await SalesmanModel.findById(salesmanId).session(session)
+
       if (!customer) throw new Error("Customer not found");
       if (!shop) throw new Error("Shop not found");
+      if (salesmanId && !salesman) throw new Error("Salesman not found");
 
       // Fetch products
       const productIds = productsList.map((p) => p.productId);
@@ -193,6 +199,11 @@ export const createTransaction = async (
             { session },
           ),
         ),
+        salesmanId ? SalesmanModel.findByIdAndUpdate(
+          salesmanId,
+          { $inc: { totalOrders: 1 } },
+          { session }
+        ) : Promise.resolve()
       ]);
 
       return {

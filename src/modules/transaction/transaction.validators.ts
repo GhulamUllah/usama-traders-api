@@ -50,6 +50,7 @@ export const createTransactionSchema = z.object({
   customerId: objectId,
   sellerId: objectId,
   shopId: objectId,
+  salesmanId: objectId.optional(),
 
   productsList: z
     .array(productItemSchema)
@@ -58,6 +59,7 @@ export const createTransactionSchema = z.object({
   paidAmount: z
     .number({ error: "Paid amount is required" })
     .min(0, "Paid amount cannot be negative"),
+
 
   flatDiscount: z.number().min(0).optional().default(0),
   useBalance: z.boolean().optional().default(false),

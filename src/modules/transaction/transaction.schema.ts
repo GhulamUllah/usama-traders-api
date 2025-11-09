@@ -116,7 +116,7 @@ transactionSchema.pre("save", async function (next) {
   const TransactionModel = mongoose.model<ITransaction>("Transaction");
   const shopId = this.shopId;
 
-  const lastTransaction = await TransactionModel.findOne({ shopId })
+  const lastTransaction = await TransactionModel.findOne()
     .sort({ createdAt: -1 })
     .select("invoiceNumber")
     .lean();
@@ -126,7 +126,7 @@ transactionSchema.pre("save", async function (next) {
     const match = lastTransaction.invoiceNumber.match(/(\d+)$/);
     if (match) nextNumber = parseInt(match[1], 10) + 1;
   }
-
+  console.log(nextNumber, lastTransaction, shopId)
   this.invoiceNumber = `INV-${String(nextNumber).padStart(5, "0")}`;
   next();
 });

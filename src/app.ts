@@ -5,6 +5,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 import userRoutes from "./modules/auth/auth.routes"; // we will create an index.ts inside modules later
 import costumerRoutes from "./modules/customer/customer.routes"; // we will create an index.ts inside modules later
+import salesmanRoutes from "./modules/salesman/salesman.routes"; // we will create an index.ts inside modules later
 import transactionRoutes from "./modules/transaction/transaction.routes"; // we will create an index.ts inside modules later
 import productRoutes from "./modules/product/product.routes"; // we will create an index.ts inside modules later
 import shopRoutes from "./modules/shop/shop.routes"; // we will create an index.ts inside modules later
@@ -36,6 +37,7 @@ app.get("/", async (req: Request, res: Response) => {
 app.get("/api/v1/statistics", authenticate, getStatistics); // mount all feature modules here
 app.use("/api/v1/user", userRoutes); // mount all feature modules here
 app.use("/api/v1/customer", costumerRoutes); // mount all feature modules here
+app.use("/api/v1/salesman", salesmanRoutes); // mount all feature modules here
 app.use("/api/v1/pos/sale", transactionRoutes); // mount all feature modules here
 app.use("/api/v1/product", productRoutes); // mount all feature modules here
 app.use("/api/v1/shop", shopRoutes); // mount all feature modules here
