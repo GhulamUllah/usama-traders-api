@@ -50,6 +50,10 @@ const transactionSchema = new Schema<ITransaction>(
           type: Number,
           required: true,
         },
+        retail: {
+          type: Number,
+          required: true,
+        },
         discount: {
           type: Number,
           default: 0,

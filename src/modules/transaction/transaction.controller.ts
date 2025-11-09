@@ -39,6 +39,28 @@ export const createHandler = async (
   }
 };
 
+// ✅ Return Transaction
+export const returnHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const parsedData: CreateTransaction = createTransactionSchema.parse(
+      req.body,
+    );
+    const result = await createTransaction(parsedData);
+    return successResponse(
+      res,
+      201,
+      "Transaction created successfully",
+      result,
+    );
+  } catch (error) {
+    next(error);
+  }
+};
+
 // ✅ Get transaction by ID
 export const getByIdHandler = async (
   req: AuthRequest,

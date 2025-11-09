@@ -58,10 +58,7 @@ export const getTransactionById = async (
   data: GetTransactionById,
   userId: string,
 ): Promise<any> => {
-  const transaction = await TransactionModel.findOne({
-    _id: data.id,
-    sellerId: new mongoose.Types.ObjectId(userId),
-  })
+  const transaction = await TransactionModel.findById(data.id)
     .populate("customerId")
     .populate("sellerId", "name -_id")
     .populate("shopId", "name -_id")
@@ -107,6 +104,7 @@ export const createTransaction = async (
       const dbProducts = await ProductModel.find({
         _id: { $in: productIds },
       }).lean();
+      console.log({ dbProducts })
       if (dbProducts.length !== productsList.length)
         throw new Error("One or more products not found");
 
@@ -126,6 +124,7 @@ export const createTransaction = async (
           productId: dbProd._id,
           price: dbProd.price,
           quantity,
+          retail: dbProd.retail,
           name: dbProd.name,
         };
       });
@@ -153,7 +152,6 @@ export const createTransaction = async (
 
       const totalPaid = paidThroughCash + paidThroughAccountBalance;
       const paymentType = totalPaid >= actualAmount ? "FULL" : "PARTIAL";
-
       const [transaction] = await TransactionModel.create(
         [
           {

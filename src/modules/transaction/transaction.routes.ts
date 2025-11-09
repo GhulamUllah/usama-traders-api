@@ -5,6 +5,7 @@ import {
   findByCustomerHandler,
   deleteHandler,
   getByIdHandler,
+  returnHandler,
 } from "./transaction.controller";
 import { authenticate, authorizeAdmin } from "../../middleware/auth.middleware";
 
@@ -15,7 +16,11 @@ const router = Router();
  * @desc Create a new transaction (credit or debit)
  */
 router.post("/create", authenticate, createHandler);
-
+/**
+ * @route POST /api/transactions
+ * @desc Return partial or full transactions
+ */
+router.post("/return", authenticate, returnHandler);
 /**
  * @route GET /api/transactions
  * @desc Get all transactions (admin level)

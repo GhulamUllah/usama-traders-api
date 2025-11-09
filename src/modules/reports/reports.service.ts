@@ -21,68 +21,117 @@ export const getCustomerSalesReport = async ({
   if (shopId) {
     matchStage.shopId = new mongoose.Types.ObjectId(shopId);
   }
-
-  const report = await TransactionModel.aggregate([
+  const aggregation = [
     { $match: matchStage },
-
-    // Fetch customer info
+    {
+      $addFields: {
+        totalCost: {
+          $sum: {
+            $map: {
+              input: "$productsList",
+              as: "p",
+              in: {
+                $multiply: [
+                  {
+                    $toDouble: "$$p.retail"
+                  },
+                  {
+                    $toDouble: "$$p.quantity"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        totalAmount: {
+          $sum: {
+            $map: {
+              input: "$productsList",
+              as: "p",
+              in: {
+                $multiply: [
+                  {
+                    $subtract: [
+                      {
+                        $toDouble: "$$p.price"
+                      },
+                      {
+                        $toDouble: "$$p.discount"
+                      }
+                    ]
+                  },
+                  {
+                    $toDouble: "$$p.quantity"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      $group: {
+        _id: "$customerId",
+        totalSale: {
+          $sum: {
+            $toDouble: "$actualAmount"
+          }
+        },
+        totalPaid: {
+          $sum: {
+            $toDouble: "$paidAmount"
+          }
+        },
+        // Sum cost and amount across customer orders
+        totalCost: {
+          $sum: "$totalCost"
+        },
+        totalGrossAmount: {
+          $sum: "$totalAmount"
+        }
+      }
+    },
+    {
+      $addFields: {
+        debt: {
+          $subtract: [
+            "$totalSale",
+            "$totalPaid"
+          ]
+        },
+        profit: {
+          $subtract: ["$totalSale", "$totalCost"]
+        }
+      }
+    },
     {
       $lookup: {
         from: "customers",
-        localField: "customerId",
+        localField: "_id",
         foreignField: "_id",
-        as: "customer",
-      },
+        as: "customer"
+      }
     },
-    { $unwind: { path: "$customer", preserveNullAndEmptyArrays: true } },
-
-    // Explode product list
-    { $unwind: "$productsList" },
-
-    // Fetch product info (cost price)
     {
-      $lookup: {
-        from: "products",
-        localField: "productsList.productId",
-        foreignField: "_id",
-        as: "productInfo",
-      },
+      $unwind: "$customer"
     },
-    { $unwind: "$productInfo" },
-
-    // Group by customer
-    {
-      $group: {
-        _id: "$customer._id",
-        customerName: { $first: "$customer.name" },
-
-        totalSaleAmount: { $sum: "$actualAmount" },
-        totalPaidAmount: { $sum: "$paidAmount" },
-
-        totalCostPrice: {
-          $sum: {
-            $multiply: ["$productInfo.costPrice", "$productsList.quantity"],
-          },
-        },
-      },
-    },
-
     {
       $project: {
         _id: 0,
-        customerName: 1,
-        totalSaleAmount: 1,
-        totalPaidAmount: 1,
-        totalDebt: { $subtract: ["$totalSaleAmount", "$totalPaidAmount"] },
+        customerName: "$customer.name",
+        totalSaleAmount: "$totalSale",
+        totalPaidAmount: "$totalPaid",
+        totalDebt: "$debt",
         totalCostPrice: 1,
-        totalProfit: {
-          $subtract: ["$totalSaleAmount", "$totalCostPrice"],
-        },
+        totalProfit: "$profit",
       },
     },
 
     { $sort: { customerName: 1 } },
-  ]);
+  ]
+
+  const report = await TransactionModel.aggregate(aggregation as any);
 
   return report;
 };
