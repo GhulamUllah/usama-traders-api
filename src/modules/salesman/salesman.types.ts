@@ -13,6 +13,7 @@ export interface ISalesman extends Document {
   totalOrders: number;
   balance: number;
   monthlyRecord: any,
+  balanceTrail: any,
   deletedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;

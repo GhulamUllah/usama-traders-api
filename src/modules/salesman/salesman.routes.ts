@@ -5,6 +5,7 @@ import {
   createHandler,
   deleteHandler,
   findAllHandler,
+  getByIdHandler,
   resetHandler,
   updateHandler,
 } from "./salesman.controller";
@@ -17,5 +18,6 @@ router.post("/update", authenticate, updateHandler);
 router.patch("/reset", authenticate, authorizeAdmin, resetHandler);
 router.delete("/delete", authenticate, authorizeAdmin, deleteHandler);
 router.get("/all", authenticate, findAllHandler);
+router.get("/id/:salesmanId", authenticate, getByIdHandler);
 
 export default router;

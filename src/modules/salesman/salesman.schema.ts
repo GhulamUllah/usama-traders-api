@@ -18,6 +18,19 @@ const monthlyRecordSchema = new Schema(
   }
 );
 
+const balanceTrail = new Schema(
+  {
+    updatedBy: { type: String, default: null },
+    balance: { type: Number, default: 0 },
+    reason: { type: String, default: "" }
+  },
+  {
+    select: false,
+    timestamps: true
+  }
+);
+
+
 
 const salesmanSchema: Schema<ISalesman> = new Schema<ISalesman>(
   {
@@ -45,7 +58,7 @@ const salesmanSchema: Schema<ISalesman> = new Schema<ISalesman>(
       type: Number,
       default: 0,
     },
-
+    balanceTrail: [balanceTrail],
     // Uses the hidden monthly record schema
     monthlyRecord: [monthlyRecordSchema],
 

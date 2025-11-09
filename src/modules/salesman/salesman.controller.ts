@@ -10,15 +10,18 @@ import {
   deleteSalesmanSchema,
   ResetSalesman,
   resetSalesmanSchema,
+  getSalesmanByIdSchema,
 } from "./salesman.validators";
 import { successResponse } from "../../utils/response";
 import {
   createSalesman,
   deleteSalesman,
   getAllSalesman,
+  getSalesmanById,
   resetSalesman,
   updateSalesman,
 } from "./salesman.service";
+import { AuthRequest } from "../../middleware/auth.middleware";
 
 export const createHandler = async (
   req: Request,
@@ -35,13 +38,13 @@ export const createHandler = async (
 };
 
 export const updateHandler = async (
-  req: Request,
+  req: AuthRequest,
   res: Response,
   next: NextFunction,
 ) => {
   try {
     const parsedData: UpdateSalesman = updateSalesmanSchema.parse(req.body);
-    const result = await updateSalesman(parsedData);
+    const result = await updateSalesman(parsedData, req.user);
     return successResponse(res, 200, "Update successful", result);
   } catch (error) {
     console.log(error);
@@ -50,13 +53,13 @@ export const updateHandler = async (
 };
 
 export const resetHandler = async (
-  req: Request,
+  req: AuthRequest,
   res: Response,
   next: NextFunction,
 ) => {
   try {
     const parsedData: ResetSalesman = resetSalesmanSchema.parse(req.body);
-    const result = await resetSalesman(parsedData);
+    const result = await resetSalesman(parsedData, req.user);
     return successResponse(res, 200, "Reset Salesman successful", result);
   } catch (error) {
     console.log(error);
@@ -86,7 +89,22 @@ export const findAllHandler = async (
 ) => {
   try {
     const result = await getAllSalesman();
-    return successResponse(res, 200, "Costumers fetched successful", result);
+    return successResponse(res, 200, "Salesman fetched successful", result);
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+};
+
+export const getByIdHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const parsedData = getSalesmanByIdSchema.parse(req.params)
+    const result = await getSalesmanById(parsedData);
+    return successResponse(res, 200, "Salesman fetched successful", result);
   } catch (error) {
     console.log(error);
     next(error);

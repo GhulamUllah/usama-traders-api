@@ -3,6 +3,7 @@
 import {
   CreateSalesman,
   DeleteSalesman,
+  GetSalesmanById,
   ResetSalesman,
   UpdateSalesman,
 } from "./salesman.validators";
@@ -17,6 +18,12 @@ export const getAllSalesman = async (): Promise<any> => {
   });
   return Salesman;
 };
+
+export const getSalesmanById = async (data: GetSalesmanById): Promise<any> => {
+  const Salesman = await SalesmanModel.findById(data.salesmanId).select("+balanceTrail").sort({ "balanceTrail.createdAt": -1 })
+  return Salesman;
+};
+
 
 export const createSalesman = async (data: CreateSalesman): Promise<any> => {
   const { name = "", phoneNumber } = data;
@@ -37,15 +44,16 @@ export const createSalesman = async (data: CreateSalesman): Promise<any> => {
 };
 
 export const updateSalesman = async (
-  data: UpdateSalesman,
+  data: UpdateSalesman, user: any
 ): Promise<SalesmanResponse> => {
-  const { name = "", salesmanId, balance } = data;
+  const { name = "", salesmanId, balance, reason } = data;
 
   const update = await SalesmanModel.findOneAndUpdate(
     { _id: salesmanId },
     {
       $set: { name, balance },
-      $inc: { totalSpent: balance }
+      $inc: { totalSpent: balance },
+      $push: { balanceTrail: { balance, updatedBy: user.name, reason } }
     },
     { new: true },
   );
@@ -59,7 +67,7 @@ export const updateSalesman = async (
 };
 
 
-export const resetSalesman = async (data: ResetSalesman) => {
+export const resetSalesman = async (data: ResetSalesman, user: any) => {
   const { salesmanId } = data;
   console.log({ salesmanId })
   // Get current state first
@@ -84,7 +92,7 @@ export const resetSalesman = async (data: ResetSalesman) => {
   await SalesmanModel.findByIdAndUpdate(
     salesmanId,
     {
-      $push: { monthlyRecord: monthlyRecordEntry },
+      $push: { monthlyRecord: monthlyRecordEntry, balanceTrail: { balance: 0, reason: "Balance Cycle Reset", updatedBy: user?.name } },
       $set: {
         balance: 0,
         totalSpent: 0,

@@ -104,7 +104,6 @@ export const createTransaction = async (
       const dbProducts = await ProductModel.find({
         _id: { $in: productIds },
       }).lean();
-      console.log({ dbProducts })
       if (dbProducts.length !== productsList.length)
         throw new Error("One or more products not found");
 

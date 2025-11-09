@@ -24,6 +24,12 @@ export const deleteSalesmanSchema = z.object({
   }),
 });
 
+export const getSalesmanByIdSchema = z.object({
+  salesmanId: z.custom((val) => mongoose.isValidObjectId(val), {
+    message: "Invalid Salesman ID",
+  }),
+});
+
 export const updateSalesmanSchema = z.object({
   salesmanId: z.custom((val) => mongoose.isValidObjectId(val), {
     message: "Invalid Salesman ID",
@@ -34,7 +40,8 @@ export const updateSalesmanSchema = z.object({
     .max(50, "Name must not exceed 50 characters")
     .trim()
     .optional(),
-  balance: z.number().min(0, 'Minimum balance should be 0').optional()
+  balance: z.number().optional(),
+  reason: z.string().optional()
 });
 export const resetSalesmanSchema = z.object({
   salesmanId: z.custom((val) => mongoose.isValidObjectId(val), {
@@ -45,4 +52,5 @@ export const resetSalesmanSchema = z.object({
 export type CreateSalesman = z.infer<typeof createSalesmanSchema>;
 export type DeleteSalesman = z.infer<typeof deleteSalesmanSchema>;
 export type UpdateSalesman = z.infer<typeof updateSalesmanSchema>;
+export type GetSalesmanById = z.infer<typeof getSalesmanByIdSchema>;
 export type ResetSalesman = z.infer<typeof resetSalesmanSchema>;
