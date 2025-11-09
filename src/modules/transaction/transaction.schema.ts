@@ -101,6 +101,7 @@ const transactionSchema = new Schema<ITransaction>(
       type: Number,
       required: true,
     },
+    debtDescription: [String],
     deletedAt: {
       type: Date,
       default: null,

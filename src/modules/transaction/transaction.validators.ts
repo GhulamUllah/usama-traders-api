@@ -51,7 +51,7 @@ export const createTransactionSchema = z.object({
   sellerId: objectId,
   shopId: objectId,
   salesmanId: objectId.optional(),
-
+  debtDescription: z.array(z.string()).optional().default([]),
   productsList: z
     .array(productItemSchema)
     .nonempty("At least one product is required"),

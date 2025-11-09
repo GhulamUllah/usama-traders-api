@@ -85,7 +85,8 @@ export const createTransaction = async (
         flatDiscount = 0,
         paidAmount = 0,
         useBalance = false,
-        salesmanId
+        salesmanId,
+        debtDescription
       } = data;
 
       // Fetch references
@@ -168,6 +169,7 @@ export const createTransaction = async (
             paymentType,
             previousBalance,
             currentBalance,
+            debtDescription
           },
         ],
         { session },

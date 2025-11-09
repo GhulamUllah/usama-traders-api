@@ -18,6 +18,7 @@ export interface ITransaction extends Document {
   shopId: mongoose.Types.ObjectId;
   actualAmount: number;
   productsList: IProductItem[];
+  debtDescription: String[]
   paidAmount: number;
   tax: number;
   flatDiscount: number;

@@ -7,7 +7,7 @@ export const getFilteredTransactions = (
     // Lookup customer
     {
       $lookup: {
-        from: "costumers", // collection name in MongoDB
+        from: "customers", // collection name in MongoDB
         localField: "customerId",
         foreignField: "_id",
         as: "customerId",
