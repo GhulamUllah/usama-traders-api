@@ -15,7 +15,6 @@ const getStatistics = async (
   next: NextFunction,
 ) => {
   try {
-    console.log(req.user);
     const isAdmin = (req as any).user.role === "admin";
     const shopQuery: any = { deletedAt: null };
     const transactionQuery: any = { deletedAt: null };
@@ -31,6 +30,29 @@ const getStatistics = async (
     if (isAdmin) {
       const totalUsers = await UserModel.countDocuments({ deletedAt: null });
       const totalShops = await ShopModel.countDocuments({ deletedAt: null });
+      const totalStockPrice = await ProductModel.aggregate([
+        {
+          $match: {
+            deletedAt: null
+          }
+        },
+        {
+          $group: {
+            _id: null,
+            investment: {
+              $sum: {
+                $multiply: ["$retail", "$inStock"]
+              }
+            },
+            sale: {
+              $sum: {
+                $multiply: ["$price", "$inStock"]
+              }
+            }
+          }
+        }
+      ]);
+      console.log(totalStockPrice)
       generalStats.push(
         {
           label: "Total Users",
@@ -40,6 +62,14 @@ const getStatistics = async (
           label: "Total Shops",
           value: totalShops,
         },
+        {
+          label: "Current Investment Amount",
+          value: currencyFormatter(totalStockPrice?.at(0).investment || 0)
+        },
+        {
+          label: "Expected Sale Amount",
+          value: currencyFormatter(totalStockPrice?.at(0).sale || 0)
+        }
       );
     }
     const totalCostumers = await CostumerModel.countDocuments({
@@ -48,8 +78,9 @@ const getStatistics = async (
     const totalProducts = await ProductModel.countDocuments({
       deletedAt: null,
     });
-    const transactions =
-      await TransactionModel.countDocuments(transactionQuery);
+
+
+    const transactions = await TransactionModel.countDocuments(transactionQuery);
     generalStats.push(
       {
         label: "Total Customers",
