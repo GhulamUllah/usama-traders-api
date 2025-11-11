@@ -10,6 +10,8 @@ import transactionRoutes from "./modules/transaction/transaction.routes"; // we 
 import productRoutes from "./modules/product/product.routes"; // we will create an index.ts inside modules later
 import shopRoutes from "./modules/shop/shop.routes"; // we will create an index.ts inside modules later
 import reportsRoutes from './modules/reports/reports.routes'
+import businessRoutes from './modules/business-expense/business-expense.routes'
+import salariesRoutes from './modules/salaries/salaries.routes'
 import { errorHandler } from "./middleware/error.middleware";
 import getStatistics from "./modules/stats/stats.statistics";
 import { authenticate } from "./middleware/auth.middleware";
@@ -42,6 +44,8 @@ app.use("/api/v1/pos/sale", transactionRoutes); // mount all feature modules her
 app.use("/api/v1/product", productRoutes); // mount all feature modules here
 app.use("/api/v1/shop", shopRoutes); // mount all feature modules here
 app.use('/api/v1/reports', reportsRoutes);
+app.use('/api/v1/business-expense', businessRoutes);
+app.use('/api/v1/salaries', salariesRoutes);
 
 // ====== Error Handling ======
 app.use(errorHandler);

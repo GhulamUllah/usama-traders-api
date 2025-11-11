@@ -39,6 +39,13 @@ router.get("/:id", authenticate, getByIdHandler);
  */
 router.get("/customer/:customerId", authenticate, findByCustomerHandler);
 
+
+/**
+ * @route PATCH /api/transactions/update/:id
+ * @desc update a transaction
+ */
+router.patch("/update/:id", authenticate, findByCustomerHandler);
+
 /**
  * @route DELETE /api/transactions
  * @desc Soft delete a transaction
