@@ -259,7 +259,7 @@ export const updateTransaction = async (data: UpdateTransaction): Promise<any> =
       // 3) Push new debt entries into transaction.debt
       const updatedTx = await TransactionModel.findByIdAndUpdate(
         transactionId,
-        { $push: { debt: { $each: debt } } },
+        { $push: { debt: { $each: debt } }, $inc: { paidAmount: -newDebtSum }, $set: { paymentType: "PARTIAL" } },
         { new: true, session },
       );
 
@@ -301,12 +301,10 @@ export const payRemaining = async (data: PayRemaining): Promise<any> => {
     return await session.withTransaction(async () => {
       const { transactionId, debtId } = data;
 
-      // 1️⃣ Validate input
       if (!transactionId || !debtId) {
         throw new Error("transactionId and debtId are required");
       }
 
-      // 2️⃣ Find transaction with selected debt entry
       const transaction = await TransactionModel.findById(transactionId).session(session);
       if (!transaction) throw new Error("Transaction not found");
 
@@ -317,18 +315,21 @@ export const payRemaining = async (data: PayRemaining): Promise<any> => {
         return { message: "This debt is already paid", transaction };
       }
 
-      // 3️⃣ Update the debt status and paid date
+      // ✅ Mark as paid
       targetDebt.status = "Paid";
       targetDebt.paidAt = new Date();
 
+      // ✅ Increase transaction.paidAmount
+      const paidAmount = Number(targetDebt.amount) || 0;
+      transaction.paidAmount = (transaction.paidAmount || 0) + paidAmount;
+
+      // ✅ Update paymentType based on remaining unpaid debts
+      const hasRemainingDebt = transaction.debt.some(d => d.status !== "Paid");
+      transaction.paymentType = hasRemainingDebt ? "PARTIAL" : "FULL";
+
       await transaction.save({ session });
 
-      // 4️⃣ Calculate payment amount
-      const paidAmount = Number(targetDebt.amount) || 0;
-
-      // 5️⃣ Financial updates:
-      // Increase shop.totalRevenue by paidAmount
-      // Decrease customer.balance by paidAmount
+      // ✅ Financial updates
       await Promise.all([
         ShopModel.findByIdAndUpdate(
           transaction.shopId,
@@ -342,7 +343,6 @@ export const payRemaining = async (data: PayRemaining): Promise<any> => {
         ),
       ]);
 
-      // 6️⃣ Return updated data
       return {
         message: "Debt payment successful",
         transaction,

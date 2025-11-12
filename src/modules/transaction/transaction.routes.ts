@@ -7,6 +7,7 @@ import {
   getByIdHandler,
   returnHandler,
   updateHandler,
+  payRemainingHandler,
 } from "./transaction.controller";
 import { authenticate, authorizeAdmin } from "../../middleware/auth.middleware";
 
@@ -28,7 +29,7 @@ router.post("/update", authenticate, updateHandler);
  * @route POST /api/transactions/pay-remaining
  * @desc update transaction (credit or debit)
  */
-router.post("/pay-remaining", authenticate, updateHandler);
+router.post("/pay-remaining", authenticate, payRemainingHandler);
 /**
  * @route POST /api/transactions
  * @desc Return partial or full transactions
