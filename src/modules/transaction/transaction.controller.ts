@@ -4,7 +4,8 @@ import {
   createTransactionSchema,
   deleteTransactionSchema,
   getAllTransactionsSchema,
-  getTransactionByIdSchema,
+  getByIdSchema,
+  getTransactionByInvoiceIdSchema,
   getTransactionsSchema,
   payRemainingSchema,
   updateTransactionsSchema,
@@ -16,10 +17,14 @@ import {
   getAllTransactions,
   getCustomerTransactions,
   getTransactionById,
+  getTransactionByInvoiceId,
   payRemaining,
+  returnTransaction,
   updateTransaction,
 } from "./transaction.services";
 import { AuthRequest } from "../../middleware/auth.middleware";
+import { returnTransactionSchema, ReturnTransaction } from "./transaction.validators";
+
 
 // ✅ Create Transaction (credit/debit)
 export const createHandler = async (
@@ -87,27 +92,31 @@ export const payRemainingHandler = async (
   }
 };
 
-// ✅ Return Transaction
+// ✅ Process Transaction Return (Full or Partial)
 export const returnHandler = async (
-  req: Request,
+  req: AuthRequest,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   try {
-    const parsedData: CreateTransaction = createTransactionSchema.parse(
-      req.body,
-    );
-    const result = await createTransaction(parsedData);
+    // 1️⃣ Validate request body
+    const parsedData: ReturnTransaction = returnTransactionSchema.parse(req.body);
+
+    // 2️⃣ Process return
+    const result = await returnTransaction(parsedData, req.user);
+
+    // 3️⃣ Send success response
     return successResponse(
       res,
-      201,
-      "Transaction created successfully",
-      result,
+      200,
+      "Transaction return processed successfully",
+      result
     );
   } catch (error) {
     next(error);
   }
 };
+
 
 // ✅ Get transaction by ID
 export const getByIdHandler = async (
@@ -116,8 +125,33 @@ export const getByIdHandler = async (
   next: NextFunction,
 ) => {
   try {
-    const parsedData = getTransactionByIdSchema.parse(req.params);
-    const result = await getTransactionById(parsedData, (req as any).user.id);
+    const parsedData = getByIdSchema.parse(req.params);
+    const result = await getTransactionById(parsedData);
+    if (!result)
+      return errorResponse(
+        res,
+        404,
+        "You are not authorized to access this transaction or it does not exist",
+      );
+    return successResponse(
+      res,
+      200,
+      "Transaction fetched successfully",
+      result,
+    );
+  } catch (error) {
+    next(error);
+  }
+};
+// ✅ Get transaction by Invoice Number
+export const getByInvoiceIdHandler = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const parsedData = getTransactionByInvoiceIdSchema.parse(req.params);
+    const result = await getTransactionByInvoiceId(parsedData);
     if (!result)
       return errorResponse(
         res,

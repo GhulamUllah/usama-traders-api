@@ -8,8 +8,8 @@ const objectId = z.custom<mongoose.Types.ObjectId>(
 );
 
 // ✅ Get Transaction by ID
-export const getTransactionByIdSchema = z.object({
-  id: objectId,
+export const getTransactionByInvoiceIdSchema = z.object({
+  invoiceNumber: z.string(),
 });
 
 // ✅ Get All Transactions (with Pagination)
@@ -83,6 +83,9 @@ export const updateTransactionsSchema = z.object({
 export const deleteTransactionSchema = z.object({
   transactionId: objectId,
 });
+export const getByIdSchema = z.object({
+  id: objectId,
+});
 
 // ✅ Pay Remaining Transaction
 export const payRemainingSchema = z.object({
@@ -90,11 +93,31 @@ export const payRemainingSchema = z.object({
   debtId: objectId,
 });
 
+// ✅ Return Transaction Validator
+export const returnTransactionSchema = z.object({
+  transactionId: objectId,
+  products: z
+    .array(
+      z.object({
+        productId: objectId,
+        quantity: z
+          .number({ error: "Quantity is required" })
+          .positive("Quantity must be greater than 0"),
+        reason: z.string().trim().optional(), // optional reason for return
+      })
+    )
+    .nonempty("At least one product must be returned"),
+});
+
+
+
 // ✅ Inferred Types for TypeScript
+export type ReturnTransaction = z.infer<typeof returnTransactionSchema>;
 export type CreateTransaction = z.infer<typeof createTransactionSchema>;
 export type GetTransactions = z.infer<typeof getTransactionsSchema>;
 export type DeleteTransaction = z.infer<typeof deleteTransactionSchema>;
-export type GetTransactionById = z.infer<typeof getTransactionByIdSchema>;
+export type GetTransactionByInvoiceId = z.infer<typeof getTransactionByInvoiceIdSchema>;
+export type GetById = z.infer<typeof getByIdSchema>;
 export type GetAllTransactionsQuery = z.infer<typeof getAllTransactionsSchema>;
 export type UpdateTransaction = z.infer<typeof updateTransactionsSchema>;
 export type PayRemaining = z.infer<typeof payRemainingSchema>;

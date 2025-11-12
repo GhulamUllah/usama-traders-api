@@ -4,64 +4,72 @@ import {
   findAllHandler,
   findByCustomerHandler,
   deleteHandler,
-  getByIdHandler,
+  getByInvoiceIdHandler,
   returnHandler,
   updateHandler,
   payRemainingHandler,
+  getByIdHandler,
 } from "./transaction.controller";
 import { authenticate, authorizeAdmin } from "../../middleware/auth.middleware";
 
 const router = Router();
 
 /**
- * @route POST /api/transactions
+ * @route POST /api/pos/sale/create
  * @desc Create a new transaction (credit or debit)
  */
 router.post("/create", authenticate, createHandler);
 
 /**
- * @route POST /api/transactions/update
- * @desc update transaction (credit or debit)
+ * @route POST /api/pos/sale/update
+ * @desc Update transaction (credit or debit)
  */
 router.post("/update", authenticate, updateHandler);
 
 /**
- * @route POST /api/transactions/pay-remaining
- * @desc update transaction (credit or debit)
+ * @route POST /api/pos/sale/pay-remaining
+ * @desc Pay remaining transaction debt
  */
 router.post("/pay-remaining", authenticate, payRemainingHandler);
+
 /**
- * @route POST /api/transactions
- * @desc Return partial or full transactions
+ * @route POST /api/pos/sale/return
+ * @desc Return partial or full transaction
  */
 router.post("/return", authenticate, returnHandler);
+
 /**
- * @route GET /api/transactions
- * @desc Get all transactions (admin level)
+ * @route GET /api/pos/sale/history
+ * @desc Get all pos/sale 
  */
 router.get("/history", authenticate, findAllHandler);
 
 /**
- * @route GET /api/transactions/:id
+ * @route GET /api/pos/sale/:invoiceNumber
  * @desc Get a transaction by ID
  */
-router.get("/:id", authenticate, getByIdHandler);
+router.get("/:invoiceNumber", authenticate, getByInvoiceIdHandler);
 
 /**
- * @route GET /api/transactions/customer/:customerId
- * @desc Get all transactions of a specific customer
+ * @route GET /api/pos/sale/:id
+ * @desc Get a transaction by ID
+ */
+router.get("/trx/:id", authenticate, getByIdHandler);
+
+/**
+ * @route GET /api/pos/sale/customer/:customerId
+ * @desc Get all pos/sale of a specific customer
  */
 router.get("/customer/:customerId", authenticate, findByCustomerHandler);
 
-
 /**
- * @route PATCH /api/transactions/update/:id
- * @desc update a transaction
+ * @route PATCH /api/pos/sale/update/:id
+ * @desc Update a transaction (alternative endpoint)
  */
 router.patch("/update/:id", authenticate, findByCustomerHandler);
 
 /**
- * @route DELETE /api/transactions
+ * @route DELETE /api/pos/sale
  * @desc Soft delete a transaction
  */
 router.delete("/", authenticate, authorizeAdmin, deleteHandler);

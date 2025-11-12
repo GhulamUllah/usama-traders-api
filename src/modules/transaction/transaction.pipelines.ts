@@ -60,6 +60,8 @@ export const getFilteredTransactions = (
         totalDiscount: 1,
         paymentType: 1,
         debt: 1,
+        returnTrail: 1,
+        totalRefund: 1,
         "customerId.name": 1,
         "customerId.phoneNumber": 1,
         "sellerId.name": 1,

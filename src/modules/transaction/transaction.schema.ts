@@ -20,6 +20,45 @@ const debtTrail = new Schema(
     timestamps: true
   }
 );
+const returnTrail = new Schema(
+  {
+    productId: {
+      type: Schema.Types.ObjectId,
+      ref: "Product",
+      required: true,
+    },
+    quantity: {
+      type: Number,
+      required: true,
+    },
+    refundAmount: {
+      type: Number,
+      required: true, // total amount refunded for this product return
+    },
+    reason: {
+      type: String,
+      default: "", // optional: customer or admin reason
+    },
+    returnedBy: {
+      type: Schema.Types.ObjectId,
+      ref: "User", // admin or staff processing the return
+      required: false,
+    },
+    returnedAt: {
+      type: Date,
+      default: Date.now,
+    },
+    status: {
+      type: String,
+      enum: ["Processed", "Pending"], // useful if you want approval workflow
+      default: "Processed",
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
 
 // Schema Definition
 const transactionSchema = new Schema<ITransaction>(
@@ -51,6 +90,10 @@ const transactionSchema = new Schema<ITransaction>(
       type: Number,
       required: true,
     },
+    totalRefund: {
+      type: Number,
+      default: 0,
+    },
     productsList: [
       {
         productId: {
@@ -78,6 +121,7 @@ const transactionSchema = new Schema<ITransaction>(
           type: Number,
           default: 0,
         },
+        returnedQuantity: { type: Number, default: 0 }
       },
     ],
     paidAmount: {
@@ -104,6 +148,7 @@ const transactionSchema = new Schema<ITransaction>(
       type: Number,
       default: 0,
     },
+    returnTrail: [returnTrail],
     paymentType: {
       type: String,
       enum: ["PARTIAL", "FULL"],

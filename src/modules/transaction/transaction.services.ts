@@ -5,7 +5,8 @@ import {
   CreateTransaction,
   DeleteTransaction,
   GetAllTransactionsQuery,
-  GetTransactionById,
+  GetById,
+  GetTransactionByInvoiceId,
   GetTransactions,
   PayRemaining,
   UpdateTransaction,
@@ -18,6 +19,9 @@ import {
   getFilteredTransactions,
 } from "./transaction.pipelines";
 import SalesmanModel from "../salesman/salesman.schema";
+import { ReturnTransaction } from "./transaction.validators";
+import { AuthRequest } from "../../middleware/auth.middleware";
+
 
 // ✅ Get all transactions (optional filters later)
 export const getAllTransactions = async (
@@ -56,9 +60,21 @@ export const getAllTransactions = async (
 };
 
 // ✅ Get transaction by ID
+export const getTransactionByInvoiceId = async (
+  data: GetTransactionByInvoiceId,
+): Promise<any> => {
+  const transaction = await TransactionModel.findOne({ invoiceNumber: data.invoiceNumber })
+    .populate("customerId")
+    .populate("sellerId", "name -_id")
+    .populate("shopId", "name -_id")
+    .sort({ createdAt: -1 });
+
+  return transaction;
+};
+
+// ✅ Get transaction by ID
 export const getTransactionById = async (
-  data: GetTransactionById,
-  userId: string,
+  data: GetById,
 ): Promise<any> => {
   const transaction = await TransactionModel.findById(data.id)
     .populate("customerId")
@@ -229,6 +245,102 @@ export const createTransaction = async (
   }
 };
 
+
+
+/**
+ * Return Transaction (Full or Partial)
+ */
+export const returnTransaction = async (
+  data: ReturnTransaction,
+  user: AuthRequest["user"]
+): Promise<any> => {
+  const session = await mongoose.startSession();
+
+  try {
+    return await session.withTransaction(async () => {
+      const { transactionId, products } = data;
+
+      // 1️⃣ Fetch transaction
+      const transaction = await TransactionModel.findById(transactionId).session(session);
+      if (!transaction) throw new Error("Transaction not found");
+
+      // 2️⃣ Fetch references
+      const customer = await CustomerModel.findById(transaction.customerId).session(session);
+      const shop = await ShopModel.findById(transaction.shopId).session(session);
+      if (!customer) throw new Error("Customer not found");
+      if (!shop) throw new Error("Shop not found");
+
+      let subtotalRefund = 0;
+
+      // 3️⃣ Process returned products
+      for (const retProd of products) {
+        const txProduct = transaction.productsList.find(p => p.productId.toString() === retProd.productId.toString());
+        if (!txProduct) throw new Error(`Product ${retProd.productId} not in transaction`);
+
+        const returnQty = Math.min(retProd.quantity, txProduct.quantity - (txProduct.returnedQuantity || 0));
+        if (returnQty <= 0) continue;
+
+        // Update returned quantity
+        txProduct.returnedQuantity = (txProduct.returnedQuantity || 0) + returnQty;
+
+        // Calculate refund for this product (price * quantity - discount)
+        const productRefund = (txProduct.price - (txProduct.discount || 0)) * returnQty;
+        subtotalRefund += productRefund;
+
+        // Update product stock
+        await ProductModel.findByIdAndUpdate(
+          txProduct.productId,
+          { $inc: { inStock: returnQty } },
+          { session }
+        );
+
+        // Add return trail
+        transaction.returnTrail = transaction.returnTrail || [];
+        transaction.returnTrail.push({
+          productId: txProduct.productId,
+          quantity: returnQty,
+          reason: retProd.reason || "",
+          refundedAt: new Date(),
+          returnedBy: (user as any).id,
+          refundAmount: productRefund
+        });
+      }
+
+      if (subtotalRefund <= 0) throw new Error("Nothing to return");
+
+      // 4️⃣ Update transaction totals
+      transaction.totalRefund = subtotalRefund;
+      await transaction.save({ session });
+
+      // 5️⃣ Adjust balances
+      await Promise.all([
+        CustomerModel.findByIdAndUpdate(
+          customer._id,
+          { $inc: { balance: subtotalRefund } },
+          { session }
+        ),
+        ShopModel.findByIdAndUpdate(
+          shop._id,
+          { $inc: { totalRevenue: -subtotalRefund } },
+          { session }
+        ),
+      ]);
+
+      return {
+        message: "Return processed successfully",
+        refundedAmount: subtotalRefund,
+        transaction,
+      };
+    });
+  } catch (error) {
+    console.error("Transaction return failed:", error);
+    throw new Error("Transaction return failed: " + (error as Error).message);
+  } finally {
+    session.endSession();
+  }
+};
+
+
 /**
  * Update transaction (Atomic + Type-safe)
  */
@@ -294,6 +406,9 @@ export const updateTransaction = async (data: UpdateTransaction): Promise<any> =
   }
 };
 
+/**
+ * pay remaining transaction (Atomic + Type-safe)
+ */
 export const payRemaining = async (data: PayRemaining): Promise<any> => {
   const session = await mongoose.startSession();
 
@@ -357,7 +472,6 @@ export const payRemaining = async (data: PayRemaining): Promise<any> => {
     session.endSession();
   }
 };
-
 
 // ✅ Get all transactions of a specific customer
 export const getCustomerTransactions = async (

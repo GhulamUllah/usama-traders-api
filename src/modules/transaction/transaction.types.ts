@@ -2,22 +2,35 @@ import mongoose, { Document, Types } from "mongoose";
 
 // 1️⃣ Enums & Type Aliases
 export type PaymentType = "PARTIAL" | "FULL";
+export type DebtStatus = "Paid" | "Unpaid";
+export type ReturnStatus = "Processed" | "Pending";
 
-// 2️⃣ Embedded Subdocument Type
+// 2️⃣ Embedded Subdocument Types
 export interface IProductItem {
   productId: mongoose.Types.ObjectId;
   quantity: number;
   price: number;
+  retail: number;
   discount?: number;
+  returnedQuantity?: number; // tracks total quantity returned
 }
 
 export interface IDebt extends mongoose.Types.Subdocument {
   description?: string;
   amount: number;
-  status: "Paid" | "Unpaid";
+  status: DebtStatus;
   paidAt?: Date;
 }
 
+export interface IReturnTrail extends mongoose.Types.Subdocument {
+  productId: mongoose.Types.ObjectId;
+  quantity: number;        // number of items returned in this instance
+  refundAmount: number;    // total refunded amount for this return
+  reason?: string;         // optional reason for return
+  returnedBy?: mongoose.Types.ObjectId; // staff/admin who processed return
+  returnedAt?: Date;       // date of return
+  status?: ReturnStatus;   // processed or pending
+}
 
 // 3️⃣ Transaction Interface
 export interface ITransaction extends Document {
@@ -27,17 +40,19 @@ export interface ITransaction extends Document {
   actualAmount: number;
   productsList: IProductItem[];
   debt: Types.DocumentArray<IDebt>;
+  returnTrail: Types.DocumentArray<IReturnTrail>;
   paidAmount: number;
+  totalRefund?: number;
   tax: number;
   flatDiscount: number;
   totalDiscount: number;
   paidThroughCash: number;
-  invoiceNumber: string;
   paidThroughAccountBalance: number;
+  paymentType: PaymentType;
   taxRateApplied?: number;
   previousBalance: number;
   currentBalance: number;
-  paymentType: PaymentType;
+  invoiceNumber: string;
   deletedAt?: Date | null;
   createdAt?: Date;
   updatedAt?: Date;
