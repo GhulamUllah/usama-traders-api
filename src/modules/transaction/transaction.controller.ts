@@ -6,6 +6,8 @@ import {
   getAllTransactionsSchema,
   getTransactionByIdSchema,
   getTransactionsSchema,
+  payRemainingSchema,
+  updateTransactionsSchema,
 } from "./transaction.validators";
 import { errorResponse, successResponse } from "../../utils/response";
 import {
@@ -14,6 +16,8 @@ import {
   getAllTransactions,
   getCustomerTransactions,
   getTransactionById,
+  payRemaining,
+  updateTransaction,
 } from "./transaction.services";
 import { AuthRequest } from "../../middleware/auth.middleware";
 
@@ -32,6 +36,50 @@ export const createHandler = async (
       res,
       201,
       "Transaction created successfully",
+      result,
+    );
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ✅ Update Transaction (credit/debit)
+export const updateHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const parsedData = updateTransactionsSchema.parse(
+      req.body,
+    );
+    const result = await updateTransaction(parsedData);
+    return successResponse(
+      res,
+      201,
+      "Transaction Updated successfully",
+      result,
+    );
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ✅ Update Transaction (credit/debit)
+export const payRemainingHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const parsedData = payRemainingSchema.parse(
+      req.body,
+    );
+    const result = await payRemaining(parsedData);
+    return successResponse(
+      res,
+      201,
+      "Transaction Updated successfully",
       result,
     );
   } catch (error) {

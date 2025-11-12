@@ -1,6 +1,26 @@
 import mongoose, { Schema, Model, Query } from "mongoose";
 import { ITransaction } from "./transaction.types";
 
+const debtTrail = new Schema(
+  {
+    description: { type: String, default: "" },
+    amount: { type: Number, default: 0 },
+    status: {
+      type: String,
+      enum: ["Paid", "Unpaid"],
+      default: "Unpaid"
+    },
+    paidAt: {
+      type: Date,
+      default: null
+    }
+  },
+  {
+    select: false,
+    timestamps: true
+  }
+);
+
 // Schema Definition
 const transactionSchema = new Schema<ITransaction>(
   {
@@ -101,11 +121,11 @@ const transactionSchema = new Schema<ITransaction>(
       type: Number,
       required: true,
     },
-    debtDescription: [String],
     deletedAt: {
       type: Date,
       default: null,
     },
+    debt: [debtTrail]
   },
   {
     timestamps: true,

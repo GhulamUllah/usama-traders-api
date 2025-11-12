@@ -51,7 +51,6 @@ export const createTransactionSchema = z.object({
   sellerId: objectId,
   shopId: objectId,
   salesmanId: objectId.optional(),
-  debtDescription: z.array(z.string()).optional().default([]),
   productsList: z
     .array(productItemSchema)
     .nonempty("At least one product is required"),
@@ -70,9 +69,25 @@ export const getTransactionsSchema = z.object({
   customerId: objectId,
 });
 
+// ✅ Get Transactions for a Customer
+export const updateTransactionsSchema = z.object({
+  transactionId: objectId,
+  debt: z.array(z.object({
+    description: z.string().optional().default(""),
+    amount: z.number(),
+  })),
+});
+
+
 // ✅ Delete Transaction
 export const deleteTransactionSchema = z.object({
   transactionId: objectId,
+});
+
+// ✅ Pay Remaining Transaction
+export const payRemainingSchema = z.object({
+  transactionId: objectId,
+  debtId: objectId,
 });
 
 // ✅ Inferred Types for TypeScript
@@ -81,3 +96,5 @@ export type GetTransactions = z.infer<typeof getTransactionsSchema>;
 export type DeleteTransaction = z.infer<typeof deleteTransactionSchema>;
 export type GetTransactionById = z.infer<typeof getTransactionByIdSchema>;
 export type GetAllTransactionsQuery = z.infer<typeof getAllTransactionsSchema>;
+export type UpdateTransaction = z.infer<typeof updateTransactionsSchema>;
+export type PayRemaining = z.infer<typeof payRemainingSchema>;

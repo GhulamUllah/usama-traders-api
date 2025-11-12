@@ -6,6 +6,7 @@ import {
   deleteHandler,
   getByIdHandler,
   returnHandler,
+  updateHandler,
 } from "./transaction.controller";
 import { authenticate, authorizeAdmin } from "../../middleware/auth.middleware";
 
@@ -16,6 +17,18 @@ const router = Router();
  * @desc Create a new transaction (credit or debit)
  */
 router.post("/create", authenticate, createHandler);
+
+/**
+ * @route POST /api/transactions/update
+ * @desc update transaction (credit or debit)
+ */
+router.post("/update", authenticate, updateHandler);
+
+/**
+ * @route POST /api/transactions/pay-remaining
+ * @desc update transaction (credit or debit)
+ */
+router.post("/pay-remaining", authenticate, updateHandler);
 /**
  * @route POST /api/transactions
  * @desc Return partial or full transactions

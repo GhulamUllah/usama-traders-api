@@ -7,6 +7,8 @@ import {
   GetAllTransactionsQuery,
   GetTransactionById,
   GetTransactions,
+  PayRemaining,
+  UpdateTransaction,
 } from "./transaction.validators";
 import { TransactionResponse } from "./transaction.types";
 import ShopModel from "../shop/shop.schema";
@@ -86,7 +88,6 @@ export const createTransaction = async (
         paidAmount = 0,
         useBalance = false,
         salesmanId,
-        debtDescription
       } = data;
 
       // Fetch references
@@ -169,7 +170,6 @@ export const createTransaction = async (
             paymentType,
             previousBalance,
             currentBalance,
-            debtDescription
           },
         ],
         { session },
@@ -228,6 +228,136 @@ export const createTransaction = async (
     session.endSession();
   }
 };
+
+/**
+ * Update transaction (Atomic + Type-safe)
+ */
+export const updateTransaction = async (data: UpdateTransaction): Promise<any> => {
+  const session = await mongoose.startSession();
+
+  try {
+    return await session.withTransaction(async () => {
+      const { transactionId, debt = [] } = data;
+
+      if (!Array.isArray(debt) || debt.length === 0) {
+        // nothing to push — return early (or you may still want to return existing tx)
+        const tx = await TransactionModel.findById(transactionId).session(session);
+        if (!tx) throw new Error("Transaction not found");
+        return { message: "No debt to add", transaction: tx };
+      }
+
+      // 1) Load existing transaction (to get shopId, customerId)
+      const existingTx = await TransactionModel.findById(transactionId).session(session);
+      if (!existingTx) throw new Error("Transaction not found");
+
+      // 2) Compute sum of incoming debt amounts (treat missing amount as 0)
+      const newDebtSum = debt.reduce((s: number, d: any) => s + (Number(d?.amount) || 0), 0);
+      if (newDebtSum === 0) {
+        // still push records if amounts are zero — but no financial effect
+      }
+
+      // 3) Push new debt entries into transaction.debt
+      const updatedTx = await TransactionModel.findByIdAndUpdate(
+        transactionId,
+        { $push: { debt: { $each: debt } } },
+        { new: true, session },
+      );
+
+      // 4) Apply financial adjustments: subtract newDebtSum from shop.totalRevenue and customer.balance
+      // Use existingTx.shopId and existingTx.customerId
+      const shopUpdate = ShopModel.findByIdAndUpdate(
+        existingTx.shopId,
+        { $inc: { totalRevenue: -newDebtSum } },
+        { session },
+      );
+      const customerUpdate = CustomerModel.findByIdAndUpdate(
+        existingTx.customerId,
+        { $inc: { balance: -newDebtSum } },
+        { session },
+      );
+
+      await Promise.all([shopUpdate, customerUpdate]);
+
+      return {
+        message: "Debt appended and balances adjusted",
+        transaction: updatedTx,
+        calculated: {
+          pushedDebtSum: newDebtSum,
+        },
+      };
+    });
+  } catch (error) {
+    console.error("Transaction debt append failed:", error);
+    throw new Error("Transaction debt append failed: " + (error as Error).message);
+  } finally {
+    session.endSession();
+  }
+};
+
+export const payRemaining = async (data: PayRemaining): Promise<any> => {
+  const session = await mongoose.startSession();
+
+  try {
+    return await session.withTransaction(async () => {
+      const { transactionId, debtId } = data;
+
+      // 1️⃣ Validate input
+      if (!transactionId || !debtId) {
+        throw new Error("transactionId and debtId are required");
+      }
+
+      // 2️⃣ Find transaction with selected debt entry
+      const transaction = await TransactionModel.findById(transactionId).session(session);
+      if (!transaction) throw new Error("Transaction not found");
+
+      const targetDebt = transaction.debt.id(debtId);
+      if (!targetDebt) throw new Error("Debt record not found");
+
+      if (targetDebt.status === "Paid") {
+        return { message: "This debt is already paid", transaction };
+      }
+
+      // 3️⃣ Update the debt status and paid date
+      targetDebt.status = "Paid";
+      targetDebt.paidAt = new Date();
+
+      await transaction.save({ session });
+
+      // 4️⃣ Calculate payment amount
+      const paidAmount = Number(targetDebt.amount) || 0;
+
+      // 5️⃣ Financial updates:
+      // Increase shop.totalRevenue by paidAmount
+      // Decrease customer.balance by paidAmount
+      await Promise.all([
+        ShopModel.findByIdAndUpdate(
+          transaction.shopId,
+          { $inc: { totalRevenue: paidAmount } },
+          { session },
+        ),
+        CustomerModel.findByIdAndUpdate(
+          transaction.customerId,
+          { $inc: { balance: paidAmount } },
+          { session },
+        ),
+      ]);
+
+      // 6️⃣ Return updated data
+      return {
+        message: "Debt payment successful",
+        transaction,
+        paidAmount,
+        updatedDebt: targetDebt,
+      };
+    });
+  } catch (error) {
+    console.error("Transaction debt payment failed:", error);
+    throw new Error("Transaction debt payment failed: " + (error as Error).message);
+  } finally {
+    session.endSession();
+  }
+};
+
 
 // ✅ Get all transactions of a specific customer
 export const getCustomerTransactions = async (

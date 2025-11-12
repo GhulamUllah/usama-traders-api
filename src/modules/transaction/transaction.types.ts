@@ -1,4 +1,4 @@
-import mongoose, { Document } from "mongoose";
+import mongoose, { Document, Types } from "mongoose";
 
 // 1️⃣ Enums & Type Aliases
 export type PaymentType = "PARTIAL" | "FULL";
@@ -11,6 +11,14 @@ export interface IProductItem {
   discount?: number;
 }
 
+export interface IDebt extends mongoose.Types.Subdocument {
+  description?: string;
+  amount: number;
+  status: "Paid" | "Unpaid";
+  paidAt?: Date;
+}
+
+
 // 3️⃣ Transaction Interface
 export interface ITransaction extends Document {
   customerId: mongoose.Types.ObjectId;
@@ -18,7 +26,7 @@ export interface ITransaction extends Document {
   shopId: mongoose.Types.ObjectId;
   actualAmount: number;
   productsList: IProductItem[];
-  debtDescription: String[]
+  debt: Types.DocumentArray<IDebt>;
   paidAmount: number;
   tax: number;
   flatDiscount: number;
