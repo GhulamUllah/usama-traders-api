@@ -56,12 +56,13 @@ export const createProduct = async (data: CreateProduct): Promise<any> => {
 export const updateProduct = async (
   data: UpdateProduct,
 ): Promise<ProductResponse> => {
-  const { productId, ...rest } = data;
+  const { productId, discount, inStock, price, retail } = data;
 
   const update = await ProductModel.findOneAndUpdate(
     { _id: productId },
     {
-      $set: { ...rest },
+      $set: { discount, price, retail },
+      $inc: { inStock: inStock }
     },
     { new: true },
   );

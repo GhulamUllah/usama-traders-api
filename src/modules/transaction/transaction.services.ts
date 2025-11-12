@@ -313,18 +313,11 @@ export const returnTransaction = async (
       await transaction.save({ session });
 
       // 5️⃣ Adjust balances
-      await Promise.all([
-        CustomerModel.findByIdAndUpdate(
-          customer._id,
-          { $inc: { balance: subtotalRefund } },
-          { session }
-        ),
-        ShopModel.findByIdAndUpdate(
-          shop._id,
-          { $inc: { totalRevenue: -subtotalRefund } },
-          { session }
-        ),
-      ]);
+      await ShopModel.findByIdAndUpdate(
+        shop._id,
+        { $inc: { totalRevenue: -subtotalRefund } },
+        { session }
+      )
 
       return {
         message: "Return processed successfully",
