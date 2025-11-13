@@ -58,7 +58,7 @@ export const deleteHandler = async (
   next: NextFunction,
 ) => {
   try {
-    const parsedData: UpdateProduct = deleteProductSchema.parse(req.body);
+    const parsedData = deleteProductSchema.parse(req.body);
     const result = await deleteProduct(parsedData);
     return successResponse(res, 200, "Deleted successful", result);
   } catch (error) {
