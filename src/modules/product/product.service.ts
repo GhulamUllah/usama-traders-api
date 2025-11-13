@@ -15,7 +15,7 @@ export const getAllProducts = async (data: GetProduct): Promise<any> => {
   const product = await ProductModel.find({
     deletedAt: null,
     createdIn: new mongoose.Types.ObjectId(data.shopId as string),
-  }).sort({ createdAt: -1 });
+  }).sort({ inStock: 1 });
   return product;
 };
 
