@@ -1,5 +1,5 @@
 {
-  "version": 2, 
+  "version": 2,
   "name": "usama-trader-api",
   "build":{
       "src":"dist/server.js",
