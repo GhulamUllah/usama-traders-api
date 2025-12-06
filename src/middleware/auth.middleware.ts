@@ -3,12 +3,13 @@ import { Request, Response, NextFunction } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { config } from "../config";
 import { logger } from "../utils/logger";
+import connectDB from "../database/connection";
 
 export interface AuthRequest extends Request {
   user?: string | JwtPayload;
 }
 
-export const authenticate = (
+export const authenticate =async (
   req: AuthRequest,
   res: Response,
   next: NextFunction,
@@ -24,6 +25,7 @@ export const authenticate = (
   try {
     const decoded = jwt.verify(token, config.auth.jwtSecret);
     req.user = decoded;
+    await connectDB()
     next();
   } catch (error) {
     logger.warn(`Invalid token: ${error}`);
