@@ -15,6 +15,7 @@ import salariesRoutes from './modules/salaries/salaries.routes'
 import { errorHandler } from "./middleware/error.middleware";
 import getStatistics from "./modules/stats/stats.statistics";
 import { authenticate } from "./middleware/auth.middleware";
+import connectDB from "./database/connection";
 const app: Application = express();
 
 // ====== Middlewares ======
@@ -36,6 +37,7 @@ app.get("/", async (req: Request, res: Response) => {
   }
 });
 
+app.get("/api/v1/health", connectDB);
 app.get("/api/v1/statistics", authenticate, getStatistics); // mount all feature modules here
 app.use("/api/v1/user", userRoutes); // mount all feature modules here
 app.use("/api/v1/customer", costumerRoutes); // mount all feature modules here
